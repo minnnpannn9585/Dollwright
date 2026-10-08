@@ -1,0 +1,6 @@
+{
+  "name": "Dollwright.Graybox.Editor",
+  "rootNamespace": "Dollwright.Graybox.Editor",
+  "references": ["Dollwright.Graybox"],
+  "includePlatforms": ["Editor"]
+}

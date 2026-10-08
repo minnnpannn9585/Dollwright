@@ -1,0 +1,7 @@
+{
+  "name": "Dollwright.Graybox.Tests",
+  "references": ["Dollwright.Graybox"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"]
+}
