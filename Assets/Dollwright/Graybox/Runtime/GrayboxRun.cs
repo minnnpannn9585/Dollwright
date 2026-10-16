@@ -12,6 +12,10 @@ namespace Dollwright.Graybox
         public bool movementOnly;
         public Vector2 initialSpawn = new Vector2(1, 0.76f);
         public string requiredHeadId = "H1";
+        public bool returnToWorkbench;
+        [Min(0)] public float respawnDelay = 1f;
+        public bool IsRecovering => Time.time < recoverUntil;
+        public bool ExitAvailable { get; private set; }
         public int Bases { get; private set; }
         public int Faces { get; private set; }
         public bool HasMagicianHead { get; private set; }
@@ -21,7 +25,7 @@ namespace Dollwright.Graybox
         public IReadOnlyCollection<string> Collected => collected;
         readonly HashSet<string> collected = new HashSet<string>();
         Vector2 checkpoint;
-        float startedAt, completedSeconds, messageUntil;
+        float startedAt, completedSeconds, messageUntil, recoverUntil;
         string message;
         GUIStyle textStyle, titleStyle;
         Font uiFont;
@@ -36,6 +40,7 @@ namespace Dollwright.Graybox
         void Update()
         {
             if (Input.GetKeyDown(KeyCode.R)) Restart();
+            if (ExitAvailable && Input.GetKeyDown(KeyCode.E)) ConfirmExit();
         }
         public void Restart()
         {
@@ -68,11 +73,20 @@ namespace Dollwright.Graybox
         }
         public void Respawn()
         {
-            if (Completed) return;
+            if (Completed || IsRecovering) return;
             Respawns++;
+            ExitAvailable = false;
             player.Teleport(checkpoint);
-            ShowMessage("回到最近落脚点，已收集的材料保留。", 3);
+            recoverUntil = Time.time + (movementOnly ? 0 : respawnDelay);
+            ShowMessage("回到本段起点，稍候恢复操作。已收集的材料保留。", 3);
         }
+        public void SetExitAvailable(bool available)
+        {
+            ExitAvailable = available;
+            if (available && !Completed) ShowMessage("按 E 醒来，带着材料返回工作台。", 9999);
+            else if (!Completed) messageUntil = Time.time;
+        }
+        public bool ConfirmExit() { return ExitAvailable && !IsRecovering && TryComplete(); }
         public bool TryComplete()
         {
             if (movementOnly || Completed) return Completed;
@@ -85,7 +99,13 @@ namespace Dollwright.Graybox
             Completed = true;
             ShowMessage("已醒来。下一步：回工作台制作魔术师人偶。", 9999);
             WriteReport();
+            if (returnToWorkbench) StartCoroutine(ReturnAfterWake());
             return true;
+        }
+        System.Collections.IEnumerator ReturnAfterWake()
+        {
+            yield return new WaitForSeconds(0.6f);
+            if (!DreamTravel.Wake(this)) ShowMessage("返回工作台失败，请重试。", 5);
         }
         public void ShowMessage(string value, float seconds)
         {
@@ -104,7 +124,7 @@ namespace Dollwright.Graybox
             GUI.DrawTexture(new Rect(18, 18, Mathf.Min(820, Screen.width - 36), movementOnly ? 76 : 104), Texture2D.whiteTexture);
             GUI.color = Color.white;
             GUI.Label(new Rect(34, 24, Screen.width - 68, 30),
-                movementOnly ? "Dollwright · 移动灰盒" : "Dollwright · 快乐梦境灰盒", titleStyle);
+                movementOnly ? "Dollwright · 移动灰盒" : "Dollwright · 快乐梦境 v03", titleStyle);
             GUI.Label(new Rect(34, 56, Screen.width - 68, 26), "A / D 或 ← / →：行走    空格：跳跃（长按跳得更高）    R：重开", textStyle);
             if (!movementOnly)
                 GUI.Label(new Rect(34, 86, Screen.width - 68, 30),

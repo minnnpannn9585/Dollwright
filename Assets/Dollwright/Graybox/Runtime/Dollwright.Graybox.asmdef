@@ -1,4 +1,5 @@
 {
   "name": "Dollwright.Graybox",
-  "rootNamespace": "Dollwright.Graybox"
+  "rootNamespace": "Dollwright.Graybox",
+  "references": ["Unity.ugui"]
 }

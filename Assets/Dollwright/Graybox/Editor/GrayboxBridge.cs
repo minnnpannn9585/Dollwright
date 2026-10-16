@@ -15,7 +15,7 @@ namespace Dollwright.Graybox.Editor
         [Serializable] sealed class State
         {
             public string utc, unityVersion, project, scene, requestId, result, error, lastRuntimeError;
-            public bool playing, paused, compiling;
+            public bool playing, paused, compiling, sceneDirty;
             public float playerX, playerY;
             public int bases, faces, jumps;
             public bool magicianHead, completed;
@@ -57,7 +57,8 @@ namespace Dollwright.Graybox.Editor
                     requestId = SessionState.GetString("DollwrightGraybox.LastRequest", ""),
                     result = result, error = error, lastRuntimeError = lastRuntimeError,
                     playing = EditorApplication.isPlaying, paused = EditorApplication.isPaused,
-                    compiling = EditorApplication.isCompiling
+                    compiling = EditorApplication.isCompiling,
+                    sceneDirty = SceneManager.GetActiveScene().isDirty
                 };
                 if (run != null)
                 {
@@ -78,13 +79,27 @@ namespace Dollwright.Graybox.Editor
         {
             switch (request.command)
             {
+                case "apply_shelf": ShelfSelectionSetup.Apply(); result = "shelf_applied"; break;
+                case "inspect_shelf": ShelfSelectionSetup.Inspect(); result = "inspected"; break;
                 case "status": result = "ready"; break;
+                case "apply_workbench_flow": WorkbenchFlowSetup.Apply(); result = "flow_applied"; break;
+                case "test_route": FlowTestRunner.RunRoute(); result = "tests_started"; break;
+                case "test_flow": FlowTestRunner.Run(); result = "tests_started"; break;
+                case "test_ui": FlowTestRunner.RunUI(); result = "tests_started"; break;
+                case "fix_ui_icons": WorkbenchFlowSetup.RepairIconRenderers(); result = "icons_repaired"; break;
+                case "ui_select":
+                    UnityEngine.Object.FindObjectOfType<WorkbenchDreamUI>().bedButton.onClick.Invoke();
+                    result = "selection_opened"; break;
+                case "ui_enter":
+                    var shelfUI = UnityEngine.Object.FindObjectOfType<WorkbenchDreamUI>();
+                    shelfUI.TrySelectAtScreenPoint(shelfUI.viewCamera.WorldToScreenPoint(shelfUI.dollCollider.bounds.center));
+                    result = "dream_requested"; break;
                 case "refresh":
                     if (EditorApplication.isPlaying) throw new InvalidOperationException("Stop Play Mode before importing edited scripts.");
                     AssetDatabase.Refresh(); result = "refresh_requested"; break;
                 case "open_scene":
                     if (EditorApplication.isPlaying) throw new InvalidOperationException("Stop Play Mode first.");
-                    if (request.scene != GrayboxBuilder.MovementScene && request.scene != GrayboxBuilder.DreamScene)
+                    if (request.scene != GrayboxBuilder.MovementScene && request.scene != GrayboxBuilder.DreamScene && request.scene != DreamTravel.WorkbenchScene)
                         throw new InvalidOperationException("Only the two graybox scenes may be opened by the bridge.");
                     for (int i = 0; i < SceneManager.sceneCount; i++)
                         if (SceneManager.GetSceneAt(i).isDirty) throw new InvalidOperationException("Save the modified scene before switching.");
@@ -92,13 +107,15 @@ namespace Dollwright.Graybox.Editor
                     result = "scene_opened";
                     break;
                 case "play":
-                    if (UnityEngine.Object.FindObjectOfType<GrayboxRun>() == null) throw new InvalidOperationException("Open a graybox scene first.");
+                    if (UnityEngine.Object.FindObjectOfType<GrayboxRun>() == null && UnityEngine.Object.FindObjectOfType<WorkbenchDreamUI>() == null) throw new InvalidOperationException("Open a Dollwright scene first.");
                     EditorApplication.isPlaying = true; result = "play_requested"; break;
                 case "stop": EditorApplication.isPlaying = false; result = "stop_requested"; break;
                 case "pause": EditorApplication.isPaused = true; result = "paused"; break;
                 case "resume": EditorApplication.isPaused = false; result = "resumed"; break;
                 case "capture":
                     if (!EditorApplication.isPlaying || EditorApplication.isPaused) throw new InvalidOperationException("Capture requires unpaused Play Mode.");
+                    Application.runInBackground = true;
+                    EditorApplication.ExecuteMenuItem("Window/General/Game");
                     ScreenCapture.CaptureScreenshot(Path.Combine(Folder, "game-view.png"));
                     result = "capture_requested";
                     break;
@@ -114,9 +131,24 @@ namespace Dollwright.Graybox.Editor
                     var run = UnityEngine.Object.FindObjectOfType<GrayboxRun>();
                     if (run == null || run.movementOnly) throw new InvalidOperationException("Open Dream 01 first.");
                     run.player.SetInputOverride(0);
-                    run.player.Teleport(new Vector2(53, 5.12f));
+                    run.player.Teleport(new Vector2(61.6f, 7.22f));
                     result = "circus_preview_ready";
                     break;
+                case "preview_flags":
+                    Preview(new Vector2(29, 4.42f));
+                    result = "flags_preview_ready";
+                    break;
+                case "preview_push":
+                    Preview(new Vector2(11.5f, 0.72f));
+                    result = "push_preview_ready";
+                    break;
+                case "preview_exit":
+                    Preview(new Vector2(135.5f, 3.92f));
+                    result = "exit_preview_ready";
+                    break;
+                case "preview_circus_push":
+                    Preview(new Vector2(44, 2.96f));
+                    result = "circus_push_preview_ready"; break;
                 case "restore_test_settings":
                     if (EditorApplication.isPlaying) throw new InvalidOperationException("Stop Play Mode first.");
                     // Unity's batch test runner changed the original false setting to true.
@@ -126,6 +158,15 @@ namespace Dollwright.Graybox.Editor
                     break;
                 default: throw new InvalidOperationException("Unknown graybox command.");
             }
+        }
+        static void Preview(Vector2 point)
+        {
+            if (!EditorApplication.isPlaying) throw new InvalidOperationException("Preview requires Play Mode.");
+            var run = UnityEngine.Object.FindObjectOfType<GrayboxRun>();
+            if (run == null || run.movementOnly) throw new InvalidOperationException("Open Dream 01 first.");
+            Application.runInBackground = true;
+            run.player.SetInputOverride(0);
+            run.player.Teleport(point);
         }
         static void AtomicWrite(string path, string content)
         {

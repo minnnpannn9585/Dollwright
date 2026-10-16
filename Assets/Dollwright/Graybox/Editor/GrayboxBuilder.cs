@@ -126,6 +126,18 @@ namespace Dollwright.Graybox.Editor
             EditorSceneManager.SaveScene(scene, MovementScene);
         }
 
+        [MenuItem("Dollwright/Graybox/Rebuild Dream 01")]
+        public static void RebuildDream()
+        {
+            if (EditorApplication.isPlaying) throw new InvalidOperationException("Stop Play Mode first.");
+            if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            PrepareArt();
+            BuildDream();
+            AssetDatabase.SaveAssets();
+            WriteLayoutReport();
+            Debug.Log("[Dollwright] Rebuilt Dream01_Graybox v03 only.");
+        }
+
         static void BuildDream()
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -133,82 +145,104 @@ namespace Dollwright.Graybox.Editor
             var scenery = Group("02_Landmarks_NoCollision");
             var resources = Group("03_Materials");
             var triggers = Group("04_CheckpointsAndPrompts");
-            var foreground = Group("05_ForegroundOcclusion");
-            // A traversable ground route with three short, visible gaps.
-            Platform(geometry, "Ground_EntryToCircus", -3, 77, 0, 1);
-            Platform(geometry, "Ground_Carousel", 80, 100, 0, 1);
-            Platform(geometry, "Ground_Flags", 103, 124, 0, 1);
-            Platform(geometry, "Ground_Exit", 126.5f, 159, 0, 1);
-            Block(geometry, "LeftBoundary", new Vector2(-3.5f, 3), new Vector2(1, 12), GroundColor, true);
-            Block(geometry, "RightBoundary", new Vector2(159.5f, 3), new Vector2(1, 12), GroundColor, true);
-            Gate(scenery, "ParkGate", 5, "DREAM PARK");
-            // The push crate is a candidate interaction, not a required key.
-            var crate = Block(geometry, "PushCrate_Optional", new Vector2(13.3f, 0.62f), new Vector2(1.2f, 1.2f), StructureColor, true);
-            var body = crate.AddComponent<Rigidbody2D>();
-            body.mass = 2;
-            body.drag = 2;
-            body.constraints = RigidbodyConstraints2D.FreezeRotation;
-            body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-            crate.GetComponent<BoxCollider2D>().sharedMaterial = crateFriction;
-            Label(crate.transform, "CrateMark", "+", new Vector2(13.3f, 0.62f), 0.14f);
-            Platform(geometry, "EntryStep_01", 16, 18.6f, 1.5f);
-            Platform(geometry, "EntryStep_02", 20, 22.6f, 2.4f);
-            Platform(geometry, "EntryLanding", 24, 26.8f, 1.2f);
-            Pickup(resources, "B1", GrayboxPickup.Kind.Base, new Vector2(17.3f, 2.1f));
-            Gate(scenery, "CircusEntry", 33, "CIRCUS");
-            Block(scenery, "CircusCanopy", new Vector2(53, 6.5f), new Vector2(27, 3), new Color(0.79f, 0.79f, 0.78f), false, -15, triangle);
-            Pickup(resources, "F1", GrayboxPickup.Kind.Face, new Vector2(37, 0.8f));
-            Platform(geometry, "CircusStep_01", 40, 42.8f, 1.1f);
-            Platform(geometry, "CircusStep_02", 44, 46.5f, 2.2f);
-            Platform(geometry, "CircusStep_03", 48, 50.5f, 3.3f);
-            // This block is deliberately solid for the Happiness doll.
-            Block(geometry, "MagicBox_SolidForHappiness", new Vector2(55.5f, 2.2f), new Vector2(8, 4.4f), StructureColor, true);
-            Block(scenery, "MagicBox_RoofTrim", new Vector2(55.5f, 4.25f), new Vector2(8.1f, 0.3f), GroundColor, false, 2);
-            Block(scenery, "MagicBox_LockedFront", new Vector2(55.5f, 2.1f), new Vector2(5.8f, 3.35f), new Color(0.72f, 0.70f, 0.75f), false, 2);
-            Label(scenery, "BoxLabel", "MAGIC BOX", new Vector2(55.5f, 2.7f), 0.10f);
-            Label(scenery, "BoxLockLabel", "MAGICIAN ROUTE", new Vector2(55.5f, 1.6f), 0.065f);
-            Pickup(resources, "H1", GrayboxPickup.Kind.Head, new Vector2(55.5f, 5.15f));
-            Platform(geometry, "CircusExitStep", 62, 65, 2.3f);
-            Pickup(resources, "B2", GrayboxPickup.Kind.Base, new Vector2(70, 0.8f));
-            // Three short park traversals, with space to see each landing.
-            Platform(geometry, "CarouselJumpStart", 73, 77, 1.2f);
-            Platform(geometry, "CarouselLanding", 80, 83.5f, 1.2f);
-            Block(scenery, "CarouselColumn", new Vector2(89, 1.8f), new Vector2(0.6f, 3.6f), StructureColor, false, -8);
-            Block(scenery, "CarouselCanopy", new Vector2(89, 3.8f), new Vector2(8, 2.2f), StructureColor, false, -8, triangle);
-            Label(scenery, "CarouselLabel", "CAROUSEL", new Vector2(89, 5.5f), 0.09f);
-            Platform(geometry, "FlagsJumpStart", 97, 100, 0.8f);
-            Platform(geometry, "FlagsLanding", 103, 106, 0.8f);
-            Block(geometry, "LowCircusObstacle", new Vector2(112, 0.55f), new Vector2(1.2f, 1.1f), StructureColor, true);
-            Pickup(resources, "F2", GrayboxPickup.Kind.Face, new Vector2(109, 0.8f));
-            for (int i = 0; i < 7; i++)
-            {
-                var flag = Block(scenery, "Flag_" + i, new Vector2(107 + i * 1.3f, 4.3f), new Vector2(0.7f, 0.7f), StructureColor, false, -8, triangle);
-                flag.transform.rotation = Quaternion.Euler(0, 0, 180);
-            }
-            Platform(geometry, "BubbleJumpStart", 121, 124, 0.65f);
-            Platform(geometry, "BubbleLanding", 126.5f, 129.5f, 0.65f);
-            Label(scenery, "BubbleStallLabel", "BUBBLES", new Vector2(143, 4.7f), 0.09f);
-            Block(scenery, "BubbleStallRoof", new Vector2(143, 2.9f), new Vector2(4.5f, 1.4f), StructureColor, false, -7, triangle);
-            for (int i = 0; i < 3; i++)
-                Block(scenery, "BubblePreview_" + i, new Vector2(138 + i * 1.6f, 3.7f + i * 0.7f), Vector2.one * (0.6f + i * 0.12f), new Color(0.81f, 0.85f, 0.87f), false, -6, circle);
-            Pickup(resources, "B3", GrayboxPickup.Kind.Base, new Vector2(143, 0.8f));
             var run = CreateRun(false);
             var player = CreatePlayer(run);
-            CreateCamera(player, 159);
-            var counter = Block(foreground, "StallCounter_HidesB3", new Vector2(143, 0.85f), new Vector2(3.8f, 1.7f), StructureColor, false, 30);
-            counter.AddComponent<GrayboxOccluder>().player = player.transform;
-            Trigger(triggers, "EntryPushHint", new Vector2(10.5f, 1), new Vector2(1, 2), GrayboxTrigger.Action.Message,
-                "箱子可以推，也可以跳上去。先试一次跳跃，前方落脚点会逐渐显露。");
-            Checkpoint(triggers, "CircusCheckpoint", 34, "进入马戏团。大魔术箱暂时进不去，试试登上箱顶。");
-            Trigger(triggers, "MagicBoxReminder", new Vector2(50.8f, 2), new Vector2(0.7f, 4), GrayboxTrigger.Action.Message,
-                "箱内路线尚未开放。沿台阶登上箱顶，寻找头部材料。");
-            Checkpoint(triggers, "CarouselCheckpoint", 71, "离开马戏团。前方是三段短跳跃，起跳前先看落点。");
-            Checkpoint(triggers, "FlagsCheckpoint", 95, "彩旗区：留意前方的小缺口。");
-            Checkpoint(triggers, "BubbleCheckpoint", 119, "泡泡摊就在前方，遮挡后可能藏着材料。");
-            Gate(scenery, "DreamExit", 153, "WAKE UP");
-            Trigger(triggers, "WakeUpExit", new Vector2(154, 1.5f), new Vector2(1.5f, 3), GrayboxTrigger.Action.Exit, "");
+
+            // Safe tutorial: the 3.2-unit ledge exceeds an unaided full jump (2.41).
+            Platform(geometry, "Ground_EntryPush", -3, 20, 0, 1);
+            Block(geometry, "LeftBoundary", new Vector2(-3.5f, 4), new Vector2(1, 12), GroundColor, true);
+            Block(geometry, "RightBoundary", new Vector2(136.5f, 4), new Vector2(1, 12), GroundColor, true);
+            Gate(scenery, "ParkGate", 2.5f, "DREAM PARK");
+            Block(geometry, "EntrySmallHop", new Vector2(6, 0.275f), new Vector2(1.1f, 0.55f), StructureColor, true);
+            PushCrate(geometry, player, "PushCrate_Required", 13.2f, 12.4f, 19.4f);
+            Platform(geometry, "RequiredHighLedge", 20, 25.5f, 3.2f, 3.2f);
+            Pickup(resources, "B1", GrayboxPickup.Kind.Base, new Vector2(22.5f, 3.95f));
+            Label(scenery, "PushLessonLabel", "PUSH  >  CLIMB", new Vector2(16.5f, 4.4f), 0.085f);
+            Trigger(triggers, "EntryPushHint", new Vector2(10.5f, 1.5f), new Vector2(1, 3), GrayboxTrigger.Action.Message,
+                "前方高台跳不上去。贴着箱子向右走，把它推到高台边，再踩箱登台。长按空格跳得更高。");
+
+            // Flags are the warmup BEFORE the circus. There is deliberately no floor below.
+            Platform(geometry, "FloatingFlags_01", 27.2f, 30.6f, 3.7f);
+            Platform(geometry, "FloatingFlags_02", 32.4f, 35.8f, 4.6f);
+            Platform(geometry, "FloatingFlags_03", 37.7f, 41.4f, 3.4f);
+            Pickup(resources, "F1", GrayboxPickup.Kind.Face, new Vector2(33.8f, 5.35f));
+            for (int i = 0; i < 9; i++)
+            {
+                var flag = Block(scenery, "Flag_" + i, new Vector2(26.5f + i * 1.85f, 6.8f + Mathf.Sin(i * 0.65f) * 0.3f),
+                    new Vector2(0.7f, 0.85f), StructureColor, false, -8, triangle);
+                flag.transform.rotation = Quaternion.Euler(0, 0, 180);
+            }
+            Checkpoint(triggers, "FlagsCheckpoint", 24, "彩旗区：看好下一块平台。掉落会回到这里，材料保留。", 3.2f);
+
+            // A wide rest beat separates the floating warmup from the main ascent.
+            Platform(geometry, "CircusRest", 43, 51.5f, 2.2f, 0.6f);
+            Gate(scenery, "CircusEntry", 47, "CIRCUS", 2.2f);
+            Checkpoint(triggers, "CircusCheckpoint", 47, "先在舞台前歇一歇。沿外侧平台登上大魔术箱，寻找头部材料。", 2.2f);
+            Pickup(resources, "F2", GrayboxPickup.Kind.Face, new Vector2(48.5f, 2.95f));
+            Block(scenery, "CircusCanopy", new Vector2(64.5f, 11), new Vector2(29, 3.5f),
+                new Color(0.81f, 0.81f, 0.80f), false, -15, triangle);
+            Platform(geometry, "CircusClimb_01", 52.5f, 55.7f, 3.5f);
+            Platform(geometry, "CircusClimb_02", 57, 60, 5);
+            Platform(geometry, "CircusClimb_03", 60.9f, 62.7f, 6.5f);
+            Block(geometry, "MagicBox_SolidForHappiness", new Vector2(68, 5.1f), new Vector2(8, 5.8f), StructureColor, true);
+            Block(scenery, "MagicBox_RoofTrim", new Vector2(68, 7.85f), new Vector2(8, 0.3f), GroundColor, false, 2);
+            Block(scenery, "MagicBox_LockedFront", new Vector2(68, 4.9f), new Vector2(6.4f, 4.5f), new Color(0.72f, 0.70f, 0.77f), false, 2);
+            Label(scenery, "BoxLabel", "MAGIC BOX", new Vector2(68, 5.3f), 0.12f);
+            Label(scenery, "BoxLockLabel", "MAGICIAN ROUTE", new Vector2(68, 4.3f), 0.075f);
+            Pickup(resources, "H1", GrayboxPickup.Kind.Head, new Vector2(68.5f, 8.75f));
+            Checkpoint(triggers, "SummitCheckpoint", 70, "登顶成功！沿右侧宽平台向下走，出口在游乐园尽头。", 8);
+
+            // The climax ends on the box roof. The descending platforms become wider.
+            Platform(geometry, "Descent_01", 73.3f, 78.1f, 6.6f, 0.5f);
+            Platform(geometry, "Descent_02", 79.3f, 84.4f, 4.9f, 0.5f);
+            Platform(geometry, "Descent_03", 85.5f, 90.8f, 3.2f, 0.5f);
+            Pickup(resources, "B2", GrayboxPickup.Kind.Base, new Vector2(82, 5.65f));
+            Platform(geometry, "AfterBoxRest", 92, 105, 3.2f, 0.4f);
+            // Visible from the main route; reserved for a later magician visit, no level 2 yet.
+            Platform(geometry, "RevisitAlcoveFloor", 93.8f, 103.2f, 1.3f, 0.35f);
+            var violet = new Color(0.63f, 0.57f, 0.73f);
+            Block(geometry, "MagicianRevisitEntrance_Reserved", new Vector2(94.1f, 2.05f), new Vector2(0.6f, 1.5f), violet, true);
+            Block(geometry, "RevisitAlcoveEndWall", new Vector2(103, 2.05f), new Vector2(0.4f, 1.5f), StructureColor, true);
+            Label(scenery, "RevisitStar", "*", new Vector2(94.1f, 2.1f), 0.16f);
+            Label(scenery, "RevisitLabel", "MAGICIAN ONLY", new Vector2(98.5f, 2.05f), 0.07f);
+            Trigger(triggers, "RevisitPrompt", new Vector2(95, 4.3f), new Vector2(2, 2), GrayboxTrigger.Action.Message,
+                "桥下的星纹屏障暂时无法通过。下次带魔术师人偶，来看看另一条路线。（本版仅预留入口）");
+            Checkpoint(triggers, "DescentCheckpoint", 101, "前面是出口与泡泡摊，最后一份素胚可以选择收集。", 3.2f);
+            Platform(geometry, "QuietLanding", 106.2f, 114, 1.4f, 0.55f);
+            Platform(geometry, "Ground_ExitRest", 114, 136, 0, 1);
+
+            // Wake is before the optional stall. Explicit E avoids ending exploration on contact.
+            Checkpoint(triggers, "ExitCheckpoint", 116, "已经找到出口。按 E 醒来，或去右侧泡泡摊再找一份素胚。");
+            Gate(scenery, "DreamExit", 118.5f, "E : WAKE UP");
+            Trigger(triggers, "WakeUpExit", new Vector2(118.5f, 1.5f), new Vector2(3, 3), GrayboxTrigger.Action.Exit, "");
+            PushCrate(geometry, player, "PushCrate_Bonus", 124, 123.2f, 128.4f);
+            Platform(geometry, "BubbleCounter_Solid", 129, 134, 3.2f, 3.2f);
+            Pickup(resources, "B3", GrayboxPickup.Kind.Base, new Vector2(131.2f, 3.95f));
+            Block(scenery, "BubbleStallRoof", new Vector2(131.5f, 6.2f), new Vector2(5.7f, 1.3f), StructureColor, false, -7, triangle);
+            Label(scenery, "BubbleStallLabel", "BUBBLES / BONUS", new Vector2(131.5f, 6.7f), 0.09f);
+            for (int i = 0; i < 3; i++)
+                Block(scenery, "BubblePreview_" + i, new Vector2(124.5f + i * 1.4f, 4.4f + i * 0.5f),
+                    Vector2.one * (0.6f + i * 0.12f), new Color(0.81f, 0.85f, 0.87f), false, -6, circle);
+            Trigger(triggers, "BonusPushHint", new Vector2(122, 1.5f), new Vector2(1, 3), GrayboxTrigger.Action.Message,
+                "可选素胚在摊位顶。再试一次：推箱靠近柜台，踩箱跳上去。收集后回左侧出口按 E 醒来。");
+            CreateCamera(player, 136, true);
             MakeFog(player);
             EditorSceneManager.SaveScene(scene, DreamScene);
+        }
+
+        static void PushCrate(Transform parent, GrayboxPlayer2D player, string name, float x, float minX, float maxX)
+        {
+            var crate = Block(parent, name, new Vector2(x, 0.6f), new Vector2(1.2f, 1.2f), new Color(0.66f, 0.62f, 0.53f), true);
+            var body = crate.AddComponent<Rigidbody2D>();
+            body.bodyType = RigidbodyType2D.Kinematic;
+            body.constraints = RigidbodyConstraints2D.FreezeRotation;
+            body.interpolation = RigidbodyInterpolation2D.Interpolate;
+            body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+            var push = crate.AddComponent<GrayboxPushCrate>();
+            push.player = player;
+            push.minX = minX;
+            push.maxX = maxX;
+            Label(crate.transform, "PushMark", ">", new Vector2(x, 0.6f), 0.14f);
         }
 
         static Transform Group(string name) { return new GameObject(name).transform; }
@@ -252,7 +286,7 @@ namespace Dollwright.Graybox.Editor
             if (parent != null && parent.localScale != Vector3.one)
                 obj.transform.localScale = new Vector3(1 / parent.localScale.x, 1 / parent.localScale.y, 1);
         }
-        static void Gate(Transform parent, string name, float x, string label)
+        static void Gate(Transform parent, string name, float x, string label, float floorY = 0)
         {
             var gate = new GameObject(name).transform;
             gate.SetParent(parent, false);
@@ -260,6 +294,7 @@ namespace Dollwright.Graybox.Editor
             Block(gate, "Post_Right", new Vector2(x + 2, 2.5f), new Vector2(0.5f, 5), StructureColor, false, -10);
             Block(gate, "Header", new Vector2(x, 5), new Vector2(4.5f, 0.7f), StructureColor, false, -10);
             Label(gate, "Label", label, new Vector2(x, 5), 0.075f);
+            gate.position += Vector3.up * floorY;
         }
         static GrayboxRun CreateRun(bool movement)
         {
@@ -288,14 +323,14 @@ namespace Dollwright.Graybox.Editor
             Block(obj.transform, "Eye_Right", new Vector2(1.12f, 1.24f), Vector2.one * 0.055f, GroundColor, false, 12, circle);
             return player;
         }
-        static void CreateCamera(GrayboxPlayer2D player, float maxX)
+        static void CreateCamera(GrayboxPlayer2D player, float maxX, bool vertical = false)
         {
             var obj = new GameObject("MainCamera_StraightSideView");
             obj.tag = "MainCamera";
             obj.transform.position = new Vector3(6, 3.25f, -10);
             var camera = obj.AddComponent<Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = 4.5f;
+            camera.orthographicSize = vertical ? 5.2f : 4.5f;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = BackgroundColor;
             camera.nearClipPlane = 0.1f;
@@ -304,6 +339,8 @@ namespace Dollwright.Graybox.Editor
             var follow = obj.AddComponent<GrayboxCamera2D>();
             follow.target = player.transform;
             follow.worldMaxX = maxX;
+            follow.followHeight = vertical;
+            if (vertical) follow.lookAhead = 2.8f;
         }
         static void Pickup(Transform parent, string id, GrayboxPickup.Kind kind, Vector2 point)
         {
@@ -338,16 +375,17 @@ namespace Dollwright.Graybox.Editor
             trigger.message = message;
             trigger.checkpoint = checkpoint;
         }
-        static void Checkpoint(Transform parent, string name, float x, string message)
+        static void Checkpoint(Transform parent, string name, float x, string message, float floorY = 0)
         {
-            Trigger(parent, name, new Vector2(x, 1.5f), new Vector2(1, 3), GrayboxTrigger.Action.Checkpoint, message, new Vector2(x, 0.76f));
-            Block(parent, name + "_Marker", new Vector2(x, 0.1f), new Vector2(0.55f, 0.2f), new Color(0.65f, 0.72f, 0.70f), false, 1);
+            Trigger(parent, name, new Vector2(x, floorY + 1.5f), new Vector2(1, 3), GrayboxTrigger.Action.Checkpoint, message, new Vector2(x, floorY + 0.76f));
+            Block(parent, name + "_Marker", new Vector2(x, floorY + 0.1f), new Vector2(0.55f, 0.2f), new Color(0.65f, 0.72f, 0.70f), false, 1);
         }
         static void MakeFog(GrayboxPlayer2D player)
         {
             var root = new GameObject("07_Fog_RevealAhead");
             var fog = root.AddComponent<GrayboxFog2D>();
             fog.player = player.transform;
+            fog.revealCircusLandmark = true;
             root.transform.position = new Vector3(player.transform.position.x + fog.revealAhead + fog.curtainWidth / 2, 4, 0);
             Block(root.transform, "UnseenArea", root.transform.position, new Vector2(fog.curtainWidth, 40), BackgroundColor, false, 100);
             for (int i = 0; i < 4; i++)
@@ -363,14 +401,18 @@ namespace Dollwright.Graybox.Editor
             string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/DollwrightGraybox"));
             Directory.CreateDirectory(folder);
             File.WriteAllText(Path.Combine(folder, "layout.txt"),
-                "Dollwright Dream01 graybox v01\n" +
+                "Dollwright Dream01 graybox v03\n" +
                 "Editor: " + Application.unityVersion + "\n" +
-                "Movement: " + MovementScene + "\nDream: " + DreamScene + "\n" +
-                "Move speed: 4.2; jump speed: 11.5; gravity scale: 2.8\n" +
-                "Full held jump ideal height: 2.41; ideal horizontal reach: 3.52\n" +
-                "Materials: B1 (17.3,2.1), F1 (37,0.8), H1 (55.5,5.15), B2 (70,0.8), F2 (109,0.8), optional B3 (143,0.8)\n" +
-                "Gaps: [77,80], [100,103], [124,126.5]\n" +
-                "Length 162 units; 60 seconds is a design target, not a timer or a measured first-play result.\n");
+                "Dream: " + DreamScene + "\n" +
+                "Move speed 4.2; push speed 2.4; jump speed 11.5; gravity scale 2.8\n" +
+                "Full held jump ideal height 2.41; ideal horizontal reach 3.52\n" +
+                "Mandatory push x13.2 ->19.4; ledge top3.2 exceeds unaided jump\n" +
+                "Flags x27.2..41.4 BEFORE circus; no ground under gaps\n" +
+                "Circus rest x43..51.5 -> climb -> box roof top8, H1 at68.5,8.75\n" +
+                "Wide descent x73..114; reserved magician alcove x94..103\n" +
+                "Wake E at118.5; optional push crate124 ->128.4 for B3 on solid counter131.2,3.95\n" +
+                "Fall: local checkpoint + 1s input recovery, inventory kept.\n" +
+                "60 seconds is a target, not a measured first-play duration.\n");
         }
     }
 }

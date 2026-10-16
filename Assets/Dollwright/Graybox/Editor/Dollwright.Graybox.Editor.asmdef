@@ -1,6 +1,6 @@
 {
   "name": "Dollwright.Graybox.Editor",
   "rootNamespace": "Dollwright.Graybox.Editor",
-  "references": ["Dollwright.Graybox"],
+  "references": ["Dollwright.Graybox", "Unity.ugui", "UnityEditor.TestRunner"],
   "includePlatforms": ["Editor"]
 }

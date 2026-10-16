@@ -15,6 +15,7 @@ namespace Dollwright.Graybox
         public int JumpCount { get; private set; }
         public Rigidbody2D Body { get; private set; }
         public bool InputOverride { get; private set; }
+        public float MoveIntent => horizontal;
         CapsuleCollider2D capsule;
         readonly RaycastHit2D[] hits = new RaycastHit2D[12];
         ContactFilter2D solidFilter;
@@ -54,9 +55,10 @@ namespace Dollwright.Graybox
             if (IsGrounded) groundGrace = coyoteTime;
             wasGrounded = IsGrounded;
             bufferRemaining -= Time.fixedDeltaTime;
-            if (run != null && run.Completed)
+            if (run != null && (run.Completed || run.IsRecovering))
             {
                 Body.velocity = new Vector2(0, Body.velocity.y);
+                bufferRemaining = 0;
                 return;
             }
             var velocity = Body.velocity;

@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53ede26201420214699dad0aa0fa7b10, type: 3}
+  m_Name: Doll01
+  m_EditorClassIdentifier: 
+  dollId: 01
+  displayName: "\u4EBA\u5076 01 \xB7 \u7EAF\u767D"
+  dreamName: "\u68A6\u5883 01 \xB7 \u5FEB\u4E50\u6E38\u4E50\u56ED"
+  abilities: "\u884C\u8D70 \xB7 \u8DF3\u8DC3 \xB7 \u63A8\u7BB1"
+  dreamScenePath: Assets/Dollwright/Graybox/Scenes/Dream01_Graybox.unity
