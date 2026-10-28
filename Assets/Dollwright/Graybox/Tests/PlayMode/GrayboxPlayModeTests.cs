@@ -292,13 +292,12 @@ namespace Dollwright.Graybox.Tests
         }
 
         [UnityTest]
-        public IEnumerator MagicianEntrancesRemainSolidAndHeadIsTheHighestReward()
+        public IEnumerator MagicBoxStaysSolidAndHeadIsHighestWithNoRevisitEntrance()
         {
             yield return Load(Dream);
             var box = GameObject.Find("MagicBox_SolidForHappiness").GetComponent<BoxCollider2D>();
-            var entrance = GameObject.Find("MagicianRevisitEntrance_Reserved").GetComponent<BoxCollider2D>();
+            Assert.IsNull(GameObject.Find("MagicianRevisitEntrance_Reserved"), "Dream 02 now starts in its own scene; the revisit secret was cancelled.");
             Assert.IsFalse(box.isTrigger);
-            Assert.IsFalse(entrance.isTrigger);
             Assert.That(box.bounds.max.y, Is.EqualTo(8).Within(0.01f));
             Assert.IsTrue(Object.FindObjectsOfType<GrayboxPickup>().All(p => p.kind == GrayboxPickup.Kind.Head || p.transform.position.y < 8));
             player.Teleport(new Vector2(63.1f, 4));

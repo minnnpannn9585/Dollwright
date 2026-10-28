@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53ede26201420214699dad0aa0fa7b10, type: 3}
+  m_Name: Doll02_Magician
+  m_EditorClassIdentifier: 
+  instanceId: 
+  recipe:
+    body: 0
+    face: 0
+    head: 1
+  dollId: 02
+  displayName: "\u4EBA\u5076 02 \xB7 \u9B54\u672F\u5E08\uFF08\u6D4B\u8BD5\uFF09"
+  dreamName: "\u68A6\u5883 02 \xB7 \u9B54\u672F\u821E\u53F0"
+  abilities: "\u884C\u8D70 \xB7 \u8DF3\u8DC3 \xB7 \u63A8\u7BB1 \xB7 \u7A7F\u8D8A\u5C4F\u969C"
+  dreamScenePath: Assets/Dollwright/Graybox/Scenes/Dream02_MagicBox.unity

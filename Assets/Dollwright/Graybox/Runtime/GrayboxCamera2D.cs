@@ -11,6 +11,16 @@ namespace Dollwright.Graybox
         public float verticalOffset = 1.2f;
         Camera view;
         void Awake() { view = GetComponent<Camera>(); }
+        public void SnapToTarget()
+        {
+            if (view==null)view=GetComponent<Camera>();
+            if(target==null)return;
+            float halfWidth=view.orthographicSize*view.aspect;
+            float min=worldMinX+halfWidth,max=worldMaxX-halfWidth;
+            float x=min>max?(worldMinX+worldMaxX)*.5f:Mathf.Clamp(target.position.x+lookAhead,min,max);
+            float y=followHeight?Mathf.Max(centerY,target.position.y+verticalOffset):centerY;
+            transform.position=new Vector3(x,y,-10);
+        }
         void LateUpdate()
         {
             if (target == null) return;

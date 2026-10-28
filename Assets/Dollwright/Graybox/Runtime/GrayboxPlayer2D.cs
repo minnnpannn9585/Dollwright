@@ -48,7 +48,7 @@ namespace Dollwright.Graybox
             IsGrounded = false;
             int count = capsule.Cast(Vector2.down, solidFilter, hits, 0.07f);
             for (int i = 0; i < count; i++)
-                if (hits[i].collider != null && hits[i].normal.y > 0.65f) IsGrounded = true;
+                if (hits[i].collider != null && hits[i].normal.y > 0.65f && !Physics2D.GetIgnoreCollision(capsule, hits[i].collider)) IsGrounded = true;
             if (Body.velocity.y > 0.1f) IsGrounded = false;
             if (IsGrounded && !wasGrounded) groundGrace = coyoteTime;
             else if (!IsGrounded) groundGrace -= Time.fixedDeltaTime;

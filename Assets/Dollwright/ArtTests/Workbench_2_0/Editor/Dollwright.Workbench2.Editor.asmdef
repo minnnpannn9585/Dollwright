@@ -1,0 +1,6 @@
+{
+ "name":"Dollwright.Workbench2.Editor",
+ "rootNamespace":"Dollwright.Workbench2.Editor",
+ "references":["Unity.RenderPipelines.Core.Runtime","Unity.RenderPipelines.Universal.Runtime"],
+ "includePlatforms":["Editor"]
+}

@@ -754,6 +754,8 @@ MonoBehaviour:
   lookAhead: 1.8
   followSpeed: 6
   centerY: 3.25
+  followHeight: 0
+  verticalOffset: 1.2
 --- !u!81 &666052826
 AudioListener:
   m_ObjectHideFlags: 0
@@ -943,8 +945,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 974149593}
   movementOnly: 1
+  useCustomHud: 0
   initialSpawn: {x: 1, y: 0.76}
   requiredHeadId: H1
+  returnToWorkbench: 0
+  respawnDelay: 1
+  headPickupMessage: 
+  missingHeadMessage: 
+  completionMessage: 
+  restoreJourneyInventory: 0
 --- !u!4 &867133837
 Transform:
   m_ObjectHideFlags: 0
@@ -972,6 +981,7 @@ GameObject:
   - component: {fileID: 974149595}
   - component: {fileID: 974149594}
   - component: {fileID: 974149593}
+  - component: {fileID: 974149596}
   m_Layer: 0
   m_Name: Player_WhiteHappinessDoll
   m_TagString: Untagged
@@ -1078,6 +1088,21 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
+--- !u!114 &974149596
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 974149591}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee8427376233bdd44badd21e55bf43ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  circle: {fileID: 21300000, guid: ac0e5036a7876ff4f83b76f0ae96ca7f, type: 3}
+  square: {fileID: 21300000, guid: d4744f0bded1676449fece54f0e1ab76, type: 3}
+  spriteMaterial: {fileID: 2100000, guid: 3ac7e48f21a3df0459da7a4eb8aa7268, type: 2}
 --- !u!1 &1402039316
 GameObject:
   m_ObjectHideFlags: 0

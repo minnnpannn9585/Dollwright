@@ -10,11 +10,25 @@ namespace Dollwright.Graybox
     {
         public GrayboxPlayer2D player;
         public bool movementOnly;
+        public bool useCustomHud;
         public Vector2 initialSpawn = new Vector2(1, 0.76f);
         public string requiredHeadId = "H1";
         public bool returnToWorkbench;
         [Min(0)] public float respawnDelay = 1f;
-        public bool IsRecovering => Time.time < recoverUntil;
+        public GrayboxRewind Rewind { get; private set; }
+        public bool IsRecovering => Time.time < recoverUntil || (Rewind != null && Rewind.IsRewinding);
+        public string headPickupMessage, missingHeadMessage, completionMessage;
+        public bool restoreJourneyInventory;
+        readonly Dictionary<string, GrayboxPickup.Kind> materialKinds = new Dictionary<string, GrayboxPickup.Kind>();
+        readonly Dictionary<string, string> craftingMaterials = new Dictionary<string, string>();
+        public Dictionary<string, string> CopyCraftingInventory() => new Dictionary<string, string>(craftingMaterials);
+        public Dictionary<string, GrayboxPickup.Kind> CopyInventory() { return new Dictionary<string, GrayboxPickup.Kind>(materialKinds); }
+        public void RestoreInventory(Dictionary<string, GrayboxPickup.Kind> items, Dictionary<string, string> recipes = null)
+        {
+            foreach (var item in items)
+                Collect(item.Key, item.Value, recipes != null && recipes.TryGetValue(item.Key, out var id) ? id : null);
+        }
+        void Awake() { Rewind = GetComponent<GrayboxRewind>(); if (Rewind == null) Rewind = gameObject.AddComponent<GrayboxRewind>(); }
         public bool ExitAvailable { get; private set; }
         public int Bases { get; private set; }
         public int Faces { get; private set; }
@@ -34,11 +48,17 @@ namespace Dollwright.Graybox
         {
             checkpoint = initialSpawn;
             startedAt = Time.time;
+            Rewind.Capture(initialSpawn);
+            if (restoreJourneyInventory) DreamTravel.ApplyJourney(this);
+            var appearance = player.GetComponent<DreamDollAppearance>();
+            if (appearance != null && DreamTravel.HasSelectedDoll) appearance.Apply(DreamTravel.SelectedRecipe);
+            foreach(var pickup in FindObjectsOfType<GrayboxPickup>())if(collected.Contains(pickup.materialId))pickup.gameObject.SetActive(false);
             ShowMessage(movementOnly ? "先试行走和跳跃：踩上三级台阶，再落回地面。"
                 : "进入快乐梦境。先试移动与跳跃，探索游乐园。", 5);
         }
         void Update()
         {
+            if (Rewind.IsRewinding) return;
             if (Input.GetKeyDown(KeyCode.R)) Restart();
             if (ExitAvailable && Input.GetKeyDown(KeyCode.E)) ConfirmExit();
         }
@@ -52,23 +72,28 @@ namespace Dollwright.Graybox
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
 #endif
         }
-        public bool Collect(string id, GrayboxPickup.Kind kind)
+        public bool Collect(string id, GrayboxPickup.Kind kind, string craftingMaterialId = null)
         {
-            if (Completed || !collected.Add(id)) return false;
+            if (Completed || Rewind.IsRewinding || !collected.Add(id)) return false;
+            materialKinds[id] = kind;
+            craftingMaterials[id] = DollMaterialCatalog.Contains(craftingMaterialId) ? craftingMaterialId
+                : DollMaterialCatalog.FromPickup(id, kind, SceneManager.GetActiveScene().path);
             switch (kind)
             {
                 case GrayboxPickup.Kind.Base: Bases++; ShowMessage("获得素胚材料", 2); break;
                 case GrayboxPickup.Kind.Face: Faces++; ShowMessage("获得手绘面孔", 2); break;
                 case GrayboxPickup.Kind.Head:
                     HasMagicianHead = collected.Contains(requiredHeadId);
-                    ShowMessage("获得魔术师头部！箱内的梦境留给魔术师人偶。", 5);
+                    ShowMessage(string.IsNullOrEmpty(headPickupMessage) ? "获得魔术师头部！箱内的梦境留给魔术师人偶。" : headPickupMessage, 5);
                     break;
             }
             return true;
         }
         public void SetCheckpoint(Vector2 point, string label)
         {
+            if (Rewind.IsRewinding) return;
             checkpoint = point;
+            Rewind.Capture(point);
             ShowMessage(label, 3);
         }
         public void Respawn()
@@ -92,12 +117,12 @@ namespace Dollwright.Graybox
             if (movementOnly || Completed) return Completed;
             if (!HasMagicianHead)
             {
-                ShowMessage("先去马戏团的大魔术箱顶，取得魔术师头部。", 5);
+                ShowMessage(string.IsNullOrEmpty(missingHeadMessage) ? "先去马戏团的大魔术箱顶，取得魔术师头部。" : missingHeadMessage, 5);
                 return false;
             }
             completedSeconds = Time.time - startedAt;
             Completed = true;
-            ShowMessage("已醒来。下一步：回工作台制作魔术师人偶。", 9999);
+            ShowMessage(string.IsNullOrEmpty(completionMessage) ? "已醒来。下一步：回工作台制作魔术师人偶。" : completionMessage, 9999);
             WriteReport();
             if (returnToWorkbench) StartCoroutine(ReturnAfterWake());
             return true;
@@ -114,6 +139,7 @@ namespace Dollwright.Graybox
         }
         void OnGUI()
         {
+            if (useCustomHud) return;
             if (textStyle == null)
             {
                 uiFont = Font.CreateDynamicFontFromOSFont(new[] { "Microsoft YaHei", "Arial" }, 18);
@@ -125,7 +151,7 @@ namespace Dollwright.Graybox
             GUI.color = Color.white;
             GUI.Label(new Rect(34, 24, Screen.width - 68, 30),
                 movementOnly ? "Dollwright · 移动灰盒" : "Dollwright · 快乐梦境 v03", titleStyle);
-            GUI.Label(new Rect(34, 56, Screen.width - 68, 26), "A / D 或 ← / →：行走    空格：跳跃（长按跳得更高）    R：重开", textStyle);
+            GUI.Label(new Rect(34, 56, Screen.width - 68, 26), "A / D / 方向键：移动　空格：跳跃（长按更高）　Z：回溯　R：重开", textStyle);
             if (!movementOnly)
                 GUI.Label(new Rect(34, 86, Screen.width - 68, 30),
                     $"素胚 {Bases}/3    面孔 {Faces}/2    魔术师头部 {(HasMagicianHead ? "已获得" : "未获得")}    用时 {Elapsed:F1} 秒    掉落 {Respawns}", textStyle);

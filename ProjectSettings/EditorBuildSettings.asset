@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Dollwright/Graybox/Scenes/MainMenu.unity
+    guid: fc186e12eef3d24459c8c9e623536b2c
+  - enabled: 1
     path: Assets/Dollwright/Graybox/Scenes/Workbench.unity
     guid: b7eaf7cde3b38d54292cb78181e151b3
   - enabled: 1
@@ -14,4 +17,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/Dollwright/Graybox/Scenes/Dream02_MagicBox.unity
+    guid: 7018a4c49926b6e4c9dd830fb97f3f59
+  - enabled: 1
+    path: Assets/Dollwright/Graybox/Scenes/Dream02_MagicStage.unity
+    guid: 9ef340dbaec22f84a9e53cb886b12a33
   m_configObjects: {}

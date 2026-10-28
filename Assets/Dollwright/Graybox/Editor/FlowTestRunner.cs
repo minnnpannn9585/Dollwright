@@ -26,6 +26,14 @@ namespace Dollwright.Graybox.Editor
                 testMode = TestMode.PlayMode, assemblyNames = new[] { "Dollwright.Graybox.Tests" }
             }));
         }
+        public static void RunBodyWorkshop()
+        {
+            if(EditorApplication.isPlaying)throw new InvalidOperationException("Stop Play before tests.");
+            Directory.CreateDirectory("Logs/DollwrightGraybox");
+            File.WriteAllText(Path,"{\"state\":\"running\"}");
+            api.Execute(new ExecutionSettings(new Filter { testMode=TestMode.PlayMode,
+                testNames=new[]{"Dollwright.Graybox.Tests.BodyWorkshopTests","Dollwright.Graybox.Tests.CustomizationTests","Dollwright.Graybox.Tests.MainMenuTests","Dollwright.Graybox.Tests.WorkbenchFlowTests"} }));
+        }
         public static void RunRoute()
         {
             if (EditorApplication.isPlaying) throw new InvalidOperationException("Stop Play before tests.");
@@ -33,12 +41,41 @@ namespace Dollwright.Graybox.Editor
             api.Execute(new ExecutionSettings(new Filter { testMode = TestMode.PlayMode,
                 testNames = new[] { "Dollwright.Graybox.Tests.GrayboxPlayModeTests.EntireEditedDreamIsTraversableWithThreePushSections" } }));
         }
+        public static void RunDream02()
+        {
+            if (EditorApplication.isPlaying) throw new InvalidOperationException("Stop Play before tests.");
+            File.WriteAllText(Path, "{\"state\":\"running\"}");
+            api.Execute(new ExecutionSettings(new Filter { testMode = TestMode.PlayMode,
+                testNames = new[] { "Dollwright.Graybox.Tests.Dream02Tests" } }));
+        }
+        public static void RunDream02Puzzle()
+        {
+            if (EditorApplication.isPlaying) throw new InvalidOperationException("Stop Play before tests.");
+            File.WriteAllText(Path, "{\"state\":\"running\"}");
+            api.Execute(new ExecutionSettings(new Filter { testMode = TestMode.PlayMode,
+                testNames = new[] { "Dollwright.Graybox.Tests.Dream02Tests.ContinuousStagePuzzleRequiresBackstageReturnAndReachesBothRewards", "Dollwright.Graybox.Tests.Dream02Tests.GeometryPreventsGroundAndRoofShortcutsAndBoxCannotPhase" } }));
+        }
+        public static void RunRegression(bool boxOnly = false)
+        {
+            if (EditorApplication.isPlaying) throw new InvalidOperationException("Stop Play before tests.");
+            File.WriteAllText(Path, "{\"state\":\"running\"}");
+            api.Execute(new ExecutionSettings(new Filter { testMode = TestMode.PlayMode,
+                testNames = boxOnly ? new[] { "Dollwright.Graybox.Tests.GrayboxPlayModeTests.MagicBoxStaysSolidAndHeadIsHighestWithNoRevisitEntrance" } : new[] { "Dollwright.Graybox.Tests.GrayboxPlayModeTests", "Dollwright.Graybox.Tests.WorkbenchFlowTests" } }));
+        }
+        public static void RunContinuation(bool rewindOnly=false)
+        {
+            if(EditorApplication.isPlaying)throw new InvalidOperationException("Stop Play before tests.");
+            File.WriteAllText(Path,"{\"state\":\"running\"}");
+            api.Execute(new ExecutionSettings(new Filter{ testMode=TestMode.PlayMode,
+                testNames=rewindOnly?new[]{"Dollwright.Graybox.Tests.SawAndRewindTests.EveryPlayableSceneHasRewindAndRestoresAllBoxes","Dollwright.Graybox.Tests.SawAndRewindTests.LatestCheckpointRestoresBoxesPlateSawAndPhaseUnderOpaqueFog","Dollwright.Graybox.Tests.SawAndRewindTests.FallingCircusCrateIsRecoveredAndReturnsToItsSavedRail"}:new[]{"Dollwright.Graybox.Tests.SawAndRewindTests"} }));
+        }
         public static void RunUI()
         {
             if (EditorApplication.isPlaying) throw new InvalidOperationException("Stop Play before tests.");
             File.WriteAllText(Path, "{\"state\":\"running\"}");
             api.Execute(new ExecutionSettings(new Filter { testMode = TestMode.PlayMode,
-                testNames = new[] { "Dollwright.Graybox.Tests.WorkbenchFlowTests" } }));
+                testNames = new[] { "Dollwright.Graybox.Tests.WorkbenchFlowTests",
+                    "Dollwright.Graybox.Tests.CustomizationTests.WorkbenchButtonsCraftToShelfAndCreatedAppearanceEntersMagicianDream" } }));
         }
         [Serializable] sealed class Entry { public string name, result, message; public double seconds; }
         [Serializable] sealed class Report { public string state; public int passed, failed; public List<Entry> tests = new List<Entry>(); }

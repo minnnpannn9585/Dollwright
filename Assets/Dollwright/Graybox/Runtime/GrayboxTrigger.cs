@@ -12,7 +12,7 @@ namespace Dollwright.Graybox
         void OnTriggerEnter2D(Collider2D other)
         {
             var player = other.GetComponent<GrayboxPlayer2D>();
-            if (player == null) return;
+            if (player == null || player.run.Rewind.IsRewinding) return;
             if (action == Action.Exit) { player.run.SetExitAvailable(true); return; }
             if (visited) return;
             visited = true;

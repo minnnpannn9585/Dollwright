@@ -807,10 +807,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 805857213}
   movementOnly: 0
+  useCustomHud: 0
   initialSpawn: {x: 1, y: 0.76}
   requiredHeadId: H1
   returnToWorkbench: 1
   respawnDelay: 1
+  headPickupMessage: 
+  missingHeadMessage: 
+  completionMessage: 
+  restoreJourneyInventory: 0
 --- !u!4 &73856479
 Transform:
   m_ObjectHideFlags: 0
@@ -3813,6 +3818,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialId: H1
+  craftingMaterialId: H1
   kind: 2
   visual: {fileID: 2087734182}
 --- !u!58 &632410571
@@ -4291,6 +4297,7 @@ GameObject:
   - component: {fileID: 805857215}
   - component: {fileID: 805857214}
   - component: {fileID: 805857213}
+  - component: {fileID: 805857216}
   m_Layer: 0
   m_Name: Player_WhiteHappinessDoll
   m_TagString: Untagged
@@ -4397,6 +4404,21 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
+--- !u!114 &805857216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805857211}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee8427376233bdd44badd21e55bf43ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  circle: {fileID: 21300000, guid: ac0e5036a7876ff4f83b76f0ae96ca7f, type: 3}
+  square: {fileID: 21300000, guid: d4744f0bded1676449fece54f0e1ab76, type: 3}
+  spriteMaterial: {fileID: 2100000, guid: 3ac7e48f21a3df0459da7a4eb8aa7268, type: 2}
 --- !u!1 &832689457
 GameObject:
   m_ObjectHideFlags: 0
@@ -4933,6 +4955,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialId: B1
+  craftingMaterialId: R1
   kind: 0
   visual: {fileID: 1382075654}
 --- !u!58 &904136735
@@ -7767,6 +7790,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialId: F1
+  craftingMaterialId: F01
   kind: 1
   visual: {fileID: 1145332986}
 --- !u!58 &1549968766
@@ -7852,6 +7876,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialId: B2
+  craftingMaterialId: R1
   kind: 0
   visual: {fileID: 1190395247}
 --- !u!58 &1570056536
@@ -8597,6 +8622,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialId: B3
+  craftingMaterialId: R1
   kind: 0
   visual: {fileID: 66257349}
 --- !u!58 &1755791183
@@ -8766,6 +8792,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   materialId: F2
+  craftingMaterialId: F03
   kind: 1
   visual: {fileID: 339841006}
 --- !u!58 &1788003238

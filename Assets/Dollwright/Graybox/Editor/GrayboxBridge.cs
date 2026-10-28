@@ -79,11 +79,42 @@ namespace Dollwright.Graybox.Editor
         {
             switch (request.command)
             {
+                case "setup_main_menu": MainMenuSetup.Apply(); result="main_menu_installed"; break;
+                case "workbench_art": WorkbenchArtPass.Apply(); result="workbench_art_applied"; break;
+                case "inspect_art": WorkbenchArtPass.Inspect(); result="workbench_art_inspected"; break;
+                case "merge_dream02": Dream02ContinuousMerger.Apply(); result="dream02_merged"; break;
+                case "setup_customization": WorkbenchCustomizationSetup.Apply(); result="customization_installed"; break;
+                case "craft_open":
+                    UnityEngine.Object.FindObjectOfType<WorkbenchDreamUI>().OpenCrafting();
+                    result="crafting_opened"; break;
+                case "craft_preview":
+                    var craft=UnityEngine.Object.FindObjectOfType<WorkbenchCraftingUI>();
+                    craft.SelectBody(1);craft.SelectFace(3);craft.SelectHead(1);
+                    result="crafting_previewed"; break;
+                case "craft_reset":
+                    var resetCraft=UnityEngine.Object.FindObjectOfType<WorkbenchCraftingUI>();
+                    resetCraft.SelectBody(0);resetCraft.SelectFace(0);resetCraft.SelectHead(0);
+                    result="crafting_reset"; break;
+                case "craft_close":
+                    UnityEngine.Object.FindObjectOfType<WorkbenchDreamUI>().CloseSelection();
+                    result="crafting_closed"; break;
                 case "apply_shelf": ShelfSelectionSetup.Apply(); result = "shelf_applied"; break;
                 case "inspect_shelf": ShelfSelectionSetup.Inspect(); result = "inspected"; break;
+                case "build_dream02": Dream02Builder.Build(false); result="dream02_built"; break;
+                case "test_dream02": FlowTestRunner.RunDream02(); result="tests_started"; break;
+                case "test_dream02_puzzle": FlowTestRunner.RunDream02Puzzle(); result="tests_started"; break;
+                case "test_regression": FlowTestRunner.RunRegression(); result="tests_started"; break;
+                case "test_legacy_box": FlowTestRunner.RunRegression(true); result="tests_started"; break;
+                case "extend_dream02": Dream02Builder.Extend(); result="continuation_built"; break;
+                case "rewind": UnityEngine.Object.FindObjectOfType<GrayboxRun>().Rewind.TryRewind(); result="rewind_requested"; break;
+                case "test_continuation": FlowTestRunner.RunContinuation(); result="tests_started"; break;
+                case "test_rewind": FlowTestRunner.RunContinuation(true); result="tests_started"; break;
+                case "refine_saw": Dream02Builder.RefineContinuation(); result="refined"; break;
                 case "status": result = "ready"; break;
                 case "apply_workbench_flow": WorkbenchFlowSetup.Apply(); result = "flow_applied"; break;
                 case "test_route": FlowTestRunner.RunRoute(); result = "tests_started"; break;
+                case "preview_body_workshops": BodyWorkshopPreview.Start(); result="preview_started"; break;
+                case "test_body_workshop": FlowTestRunner.RunBodyWorkshop(); result="tests_started"; break;
                 case "test_flow": FlowTestRunner.Run(); result = "tests_started"; break;
                 case "test_ui": FlowTestRunner.RunUI(); result = "tests_started"; break;
                 case "fix_ui_icons": WorkbenchFlowSetup.RepairIconRenderers(); result = "icons_repaired"; break;
@@ -99,7 +130,7 @@ namespace Dollwright.Graybox.Editor
                     AssetDatabase.Refresh(); result = "refresh_requested"; break;
                 case "open_scene":
                     if (EditorApplication.isPlaying) throw new InvalidOperationException("Stop Play Mode first.");
-                    if (request.scene != GrayboxBuilder.MovementScene && request.scene != GrayboxBuilder.DreamScene && request.scene != DreamTravel.WorkbenchScene)
+                    if (request.scene != MainMenuUI.ScenePath && request.scene != GrayboxBuilder.MovementScene && request.scene != GrayboxBuilder.DreamScene && request.scene != DreamTravel.WorkbenchScene && request.scene != Dream02Builder.Entry && request.scene != Dream02Builder.Stage)
                         throw new InvalidOperationException("Only the two graybox scenes may be opened by the bridge.");
                     for (int i = 0; i < SceneManager.sceneCount; i++)
                         if (SceneManager.GetSceneAt(i).isDirty) throw new InvalidOperationException("Save the modified scene before switching.");
@@ -107,7 +138,7 @@ namespace Dollwright.Graybox.Editor
                     result = "scene_opened";
                     break;
                 case "play":
-                    if (UnityEngine.Object.FindObjectOfType<GrayboxRun>() == null && UnityEngine.Object.FindObjectOfType<WorkbenchDreamUI>() == null) throw new InvalidOperationException("Open a Dollwright scene first.");
+                    if (UnityEngine.Object.FindObjectOfType<MainMenuUI>() == null && UnityEngine.Object.FindObjectOfType<GrayboxRun>() == null && UnityEngine.Object.FindObjectOfType<WorkbenchDreamUI>() == null) throw new InvalidOperationException("Open a Dollwright scene first.");
                     EditorApplication.isPlaying = true; result = "play_requested"; break;
                 case "stop": EditorApplication.isPlaying = false; result = "stop_requested"; break;
                 case "pause": EditorApplication.isPaused = true; result = "paused"; break;

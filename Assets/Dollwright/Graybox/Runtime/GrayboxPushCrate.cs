@@ -21,6 +21,7 @@ namespace Dollwright.Graybox
         Rigidbody2D body;
         BoxCollider2D shape;
         float railY;
+        readonly RaycastHit2D[] moveHits=new RaycastHit2D[12];
         void Awake()
         {
             body = GetComponent<Rigidbody2D>();
@@ -28,9 +29,20 @@ namespace Dollwright.Graybox
             railY = body.position.y;
             spawn = body.position;
         }
+        public Vector2 CheckpointPosition => IsFalling ? spawn : GetComponent<Rigidbody2D>().position;
+        public void RestoreCheckpoint(Vector2 position)
+        {
+            if(body==null)body=GetComponent<Rigidbody2D>();
+            body.bodyType=RigidbodyType2D.Kinematic;
+            body.velocity=Vector2.zero;body.angularVelocity=0;body.rotation=0;
+            body.position=position;
+            transform.position=new Vector3(position.x,position.y,transform.position.z);
+            railY=position.y;IsFalling=false;IsBeingPushed=false;
+        }
         void FixedUpdate()
         {
             IsBeingPushed = false;
+            if (player != null && player.run.Rewind.IsRewinding) return;
             if (IsFalling)
             {
                 if (body.position.y < spawn.y - respawnDrop || Time.time - fallingSince > 3f)
@@ -74,6 +86,16 @@ namespace Dollwright.Graybox
             if (!nearSide || !onFloor || !towardCrate) return;
             float nextX = body.position.x + Mathf.Sign(axis) * pushSpeed * Time.fixedDeltaTime;
             if (!fallAndRespawn) nextX = Mathf.Clamp(nextX, minX, maxX);
+            float distance=Mathf.Abs(nextX-body.position.x);
+            float direction=Mathf.Sign(nextX-body.position.x);
+            int blockers=shape.Cast(new Vector2(direction,0),new ContactFilter2D { useTriggers=false },moveHits,distance);
+            for(int i=0;i<blockers;i++)
+            {
+                var hit=moveHits[i];
+                if(hit.collider==null||hit.collider.GetComponent<GrayboxPlayer2D>()!=null)continue;
+                if(hit.normal.x*direction<-.5f)distance=Mathf.Min(distance,Mathf.Max(0,hit.distance-.002f));
+            }
+            nextX=body.position.x+direction*distance;
             IsBeingPushed = Mathf.Abs(nextX - body.position.x) > 0.0001f;
             body.MovePosition(new Vector2(nextX, railY));
         }
