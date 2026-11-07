@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Dollwright/Workbench2/LampBeam
+  m_Shader: {fileID: 4800000, guid: ad654a42a0e938544aab2da9750782fc, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _Density: 0.52
+    m_Colors:
+    - _BeamAxis: {r: 0.642222, g: -0.7665187, b: -0.00000011737329, a: 0.8886871}
+    - _BeamColor: {r: 1, g: 0.76, b: 0.42, a: 1}
+    - _BeamOrigin: {r: -0.6707344, g: 1.6446953, b: -0.21999986, a: 0}
+    - _BeamRadii: {r: 0.095, g: 0.3017025, b: 0, a: 0}
+  m_BuildTextureStacks: []

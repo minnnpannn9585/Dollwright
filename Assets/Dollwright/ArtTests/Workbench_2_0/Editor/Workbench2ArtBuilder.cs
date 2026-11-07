@@ -58,14 +58,13 @@ namespace Dollwright.Workbench2.Editor
     if(t.name=="Wood_Station"||t.name=="Pottery_Station"||t.name=="Interaction_Anchors")t.gameObject.SetActive(false);
     if(t.name=="Crafting_Platform")t.localScale=new Vector3(1.15f,1.10f,1.0f);
    }
-   // Add only restrained trim detail to the imported art copy. No game behaviours.
-   var artDetails=new GameObject("Art_Detail_Trim");artDetails.transform.SetParent(root.transform,false);
-   AddTrimDetails(artDetails.transform);
+   // The source's independent geometry is retained; no game behaviours are attached.
    PrefabUtility.SaveAsPrefabAsset(root,Root+"/Prefabs/Workbench_2_0_Art.prefab");
    SetupCamera();
    SetupBackground();
    SetupLighting();
    SetupPostProcessing();
+   ConfigureFocusRevision();
    EditorSceneManager.SaveScene(scene,ScenePath);AssetDatabase.SaveAssets();
    File.WriteAllLines(Reports+"/material-assignments.txt",report);
    var probe=UnityEngine.Object.FindObjectOfType<ReflectionProbe>();
@@ -78,6 +77,7 @@ namespace Dollwright.Workbench2.Editor
    EditorSceneManager.SaveScene(scene,ScenePath);AssetDatabase.SaveAssets();
    if(SceneView.lastActiveSceneView){SceneView.lastActiveSceneView.LookAt(new Vector3(0,1.15f,0),camera.transform.rotation,2.6f);SceneView.lastActiveSceneView.sceneLighting=true;}
    Validate();
+   if(!Application.isBatchMode)EditorApplication.ExecuteMenuItem("Window/General/Game");
    Debug.Log("WORKBENCH_2_ART_READY "+ScenePath);
   }
 
@@ -91,6 +91,74 @@ namespace Dollwright.Workbench2.Editor
   {
    if(!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())return;
    EditorSceneManager.OpenScene(ScenePath);EditorApplication.ExecuteMenuItem("Window/General/Game");
+  }
+  [MenuItem("Dollwright/Art Tests/Workbench 2.0/Apply Platform Focus and Blank Papers")]
+  public static void FocusAndCapture()
+  {
+   Application.logMessageReceived-=TrackError;Application.logMessageReceived+=TrackError;errors.Clear();
+   if(EditorApplication.isPlaying)throw new InvalidOperationException("Stop Play mode first.");
+   if(!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())return;
+   if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().path!=ScenePath)EditorSceneManager.OpenScene(ScenePath);
+   camera=Camera.main;ConfigureFocusRevision();
+   EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());AssetDatabase.SaveAssets();
+   Validate();EditorApplication.ExecuteMenuItem("Window/General/Game");
+   QueueCapture("03_Unity_Focus_Revision.png",Application.isBatchMode);
+  }
+  static void ConfigureFocusRevision()
+  {
+   var model=GameObject.Find("Workbench_2_0_Art_Model");
+   if(!model)throw new InvalidOperationException("Workbench model missing.");
+   string handlePath=Root+"/Materials/WB2_DrawerHandle_Matte.mat";
+   var handle=AssetDatabase.LoadAssetAtPath<Material>(handlePath);
+   if(!handle){handle=new Material(Shader.Find("Universal Render Pipeline/Lit"));AssetDatabase.CreateAsset(handle,handlePath);}
+   handle.SetColor("_BaseColor",C(.38f,.31f,.22f));handle.SetFloat("_Metallic",.15f);handle.SetFloat("_Smoothness",.08f);
+   handle.SetFloat("_SpecularHighlights",0);handle.EnableKeyword("_SPECULARHIGHLIGHTS_OFF");
+   handle.SetFloat("_EnvironmentReflections",0);handle.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");EditorUtility.SetDirty(handle);
+   var paper=AssetDatabase.LoadAssetAtPath<Material>(Root+"/Materials/WB2_Paper.mat");
+   paper.SetTexture("_BaseMap",null);paper.SetTexture("_MainTex",null);paper.SetColor("_BaseColor",C(.82f,.78f,.67f));paper.SetFloat("_Smoothness",.06f);EditorUtility.SetDirty(paper);
+   int handles=0,papers=0;
+   foreach(var r in model.GetComponentsInChildren<MeshRenderer>(true))
+   {
+    if(r.name.Contains("Drawer")&&r.name.Contains("Handle")){r.sharedMaterial=handle;handles++;}
+    if(r.name.Contains("Paper")||r.name.StartsWith("Apron_Note")){r.sharedMaterial=paper;papers++;}
+   }
+   var top=model.GetComponentsInChildren<MeshRenderer>(true).First(r=>r.name=="Crafting_Platform_Top");
+   var target=new Vector3(top.bounds.center.x,top.bounds.max.y+.008f,top.bounds.center.z);
+   var lamp=GameObject.Find("Lamp_Warm_Pool").GetComponent<Light>();
+   var bulb=model.GetComponentsInChildren<Transform>(true).First(t=>t.name=="Lamp_Bulb");
+   // Keep the lamp's oval sunlight shadow from obscuring the intended crafting target.
+   model.GetComponentsInChildren<MeshRenderer>(true).First(r=>r.name=="Lamp_Bell_Shade").shadowCastingMode=ShadowCastingMode.Off;
+   // Put the virtual emitter beyond the shade lip so its rim cannot block the centre pool.
+   lamp.transform.position=bulb.position+(target-bulb.position).normalized*.18f;
+   lamp.transform.LookAt(target);lamp.color=C(1,.83f,.57f);lamp.intensity=2.8f;lamp.spotAngle=49;lamp.innerSpotAngle=28;lamp.range=2.1f;
+   var bounce=GameObject.Find("Desk_Warm_Bounce").GetComponent<Light>();bounce.intensity=.10f;
+   camera=Camera.main;camera.GetUniversalAdditionalCameraData().requiresDepthTexture=true;
+   MakeLampBeam(lamp.transform.position,target,top.bounds.extents.x*.53f,lamp.transform.parent);
+   PrefabUtility.SaveAsPrefabAsset(model,Root+"/Prefabs/Workbench_2_0_Art.prefab");
+   File.WriteAllText(Reports+"/focus-revision.txt","Drawer handle meshes: "+handles+"\nBlank paper meshes: "+papers+"\nPaper texture: none; UVs preserved.\nLamp target: "+target+"\nOriginal lamp brass unchanged.\nBeam depth clipped; no gameplay scripts.\n");
+   if(handles!=14||papers!=8)throw new InvalidOperationException("Unexpected handle or paper mesh count: "+handles+", "+papers);
+   if(paper.GetTexture("_BaseMap")||handle.GetFloat("_Smoothness")>.15f||handle.GetFloat("_Metallic")>.2f)throw new InvalidOperationException("Paper / matte handle checks failed.");
+   if(Vector3.Dot(lamp.transform.forward,(target-lamp.transform.position).normalized)<.999f)throw new InvalidOperationException("Lamp is not aimed at crafting centre.");
+  }
+  static void MakeLampBeam(Vector3 origin,Vector3 target,float endRadius,Transform parent)
+  {
+   const string objectName="Lamp_Beam_To_Crafting_Platform";
+   var old=GameObject.Find(objectName);if(old)UnityEngine.Object.DestroyImmediate(old);
+   var direction=(target-origin).normalized;float length=Vector3.Distance(origin,target);float startRadius=.095f;
+   var material=new Material(Shader.Find("Dollwright/Workbench2/LampBeam"));
+   material.SetColor("_BeamColor",C(1,.76f,.42f));material.SetFloat("_Density",.52f);
+   material.SetVector("_BeamOrigin",origin);material.SetVector("_BeamAxis",new Vector4(direction.x,direction.y,direction.z,length));material.SetVector("_BeamRadii",new Vector4(startRadius,endRadius,0,0));
+   PutAsset(material,Root+"/Materials/WB2_LampBeam.mat");
+   const int sides=32;var v=new List<Vector3>();var uv=new List<Vector2>();var triangles=new List<int>();
+   for(int row=0;row<2;row++)for(int i=0;i<sides;i++)
+   {float a=i*Mathf.PI*2/sides;float radius=row==0?startRadius:endRadius;v.Add(new Vector3(Mathf.Cos(a)*radius,Mathf.Sin(a)*radius,row*length));uv.Add(new Vector2(i/(float)sides,row));}
+   for(int i=0;i<sides;i++){int j=(i+1)%sides;triangles.AddRange(new[]{i,j,sides+j,i,sides+j,sides+i});}
+   v.Add(Vector3.zero);uv.Add(new Vector2(.5f,0));v.Add(new Vector3(0,0,length));uv.Add(new Vector2(.5f,1));
+   for(int i=0;i<sides;i++){int j=(i+1)%sides;triangles.AddRange(new[]{sides*2,j,i,sides*2+1,sides+i,sides+j});}
+   var mesh=new Mesh{name="Lamp_Beam_Proxy"};mesh.SetVertices(v);mesh.SetUVs(0,uv);mesh.SetTriangles(triangles,0);mesh.RecalculateNormals();mesh.RecalculateBounds();
+   PutAsset(mesh,Root+"/Models/Lamp_Beam_Proxy.asset");
+   var go=new GameObject(objectName);go.transform.SetParent(parent);go.transform.SetPositionAndRotation(origin,Quaternion.LookRotation(direction));
+   go.AddComponent<MeshFilter>().sharedMesh=AssetDatabase.LoadAssetAtPath<Mesh>(Root+"/Models/Lamp_Beam_Proxy.asset");var r=go.AddComponent<MeshRenderer>();r.sharedMaterial=AssetDatabase.LoadAssetAtPath<Material>(Root+"/Materials/WB2_LampBeam.mat");r.shadowCastingMode=ShadowCastingMode.Off;r.receiveShadows=false;
   }
   [MenuItem("Dollwright/Art Tests/Workbench 2.0/Capture Current Camera")]
   public static void Capture(){QueueCapture("01_Unity_Workbench_2_0.png",false);}
@@ -107,6 +175,15 @@ namespace Dollwright.Workbench2.Editor
    try
    {
     RenderToFile(camera,Path.Combine(Preview,pendingCapture),1920,1000);
+    var oldPosition=camera.transform.position;var oldRotation=camera.transform.rotation;float oldFov=camera.fieldOfView;
+    try
+    {
+     camera.transform.position=new Vector3(-1.55f,1.65f,-2.8f);camera.transform.LookAt(new Vector3(-.26f,1.08f,-.08f));camera.fieldOfView=32;
+     RenderToFile(camera,Path.Combine(Preview,"02_Unity_Material_Detail.png"),1600,1000);
+    }
+    finally{camera.transform.SetPositionAndRotation(oldPosition,oldRotation);camera.fieldOfView=oldFov;}
+    // Persist the restored main view, never the temporary material inspection camera.
+    EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
     Validate();
     File.WriteAllText(Reports+"/capture-complete.json",JsonUtility.ToJson(new CaptureReport{image=Path.Combine(Preview,pendingCapture),errors=errors.ToArray()},true));
     if(exitAfterCapture)EditorApplication.Exit(errors.Count==0?0:1);
@@ -150,25 +227,25 @@ namespace Dollwright.Workbench2.Editor
   static void MakeMaterials()
   {
    mats=new Dictionary<string,Material>();var wood=Texture("Painted_Walnut");var panel=Texture("Aged_Red_Panel",false);var paper=Texture("Paper_Patterns",false);
-   Mat("Wood",C(.61f,.47f,.34f),wood,.28f,0,true);
-   Mat("DarkWood",C(.35f,.29f,.23f),wood,.23f,0,true);
-   Mat("Recess",C(.30f,.32f,.24f),wood,.10f,0,true,C(.055f,.082f,.055f),.85f);
-   Mat("GreenPaint",C(.56f,.46f,.30f),wood,.24f,0,true,C(.10f,.19f,.145f),.82f);
+   Mat("Wood",C(.72f,.67f,.58f),wood,.23f,0,true);
+   Mat("DarkWood",C(.49f,.47f,.40f),wood,.20f,0,true);
+   Mat("Recess",C(.40f,.44f,.35f),wood,.10f,0,true,C(.23f,.25f,.18f),.72f);
+   Mat("GreenPaint",C(.65f,.58f,.42f),wood,.24f,0,true,C(.15f,.26f,.21f),.64f);
    Mat("TealPaint",C(.66f,.53f,.35f),wood,.30f,0,true,C(.09f,.27f,.25f),.93f);
    Mat("RedPaint",C(.62f,.47f,.30f),wood,.26f,0,true,C(.32f,.055f,.032f),.85f);
    Mat("RedPanel",C(.71f,.70f,.65f),panel,.26f);
-   Mat("Brass",C(.69f,.47f,.21f),null,.68f,.84f);
+   Mat("Brass",C(.64f,.49f,.28f),null,.49f,.78f);
    Mat("Steel",C(.53f,.59f,.56f),null,.55f,.75f);
-   Mat("Ink",C(.022f,.037f,.028f),null,.39f,.25f);
-   Mat("Ivory",C(.73f,.69f,.53f),wood,.31f,0,true,C(.66f,.59f,.41f),.98f);
-   Mat("Ceramic",C(.59f,.58f,.43f),null,.40f);
-   Mat("Paper",C(.70f,.65f,.51f),paper,.08f);
-   Mat("Fabric",C(.038f,.17f,.18f),null,.12f);
+   Mat("Ink",C(.055f,.075f,.057f),null,.32f,.18f);
+   Mat("Ivory",C(.78f,.75f,.65f),wood,.24f,0,true,C(.73f,.70f,.61f),.98f);
+   Mat("Ceramic",C(.65f,.67f,.59f),null,.30f);
+   Mat("Paper",C(.82f,.78f,.67f),paper,.08f);
+   Mat("Fabric",C(.065f,.24f,.25f),null,.12f);
    Mat("Cotton",C(.58f,.49f,.32f),null,.12f);
    Mat("Cord",C(.20f,.14f,.07f),null,.12f);
    Mat("Bristles",C(.055f,.027f,.012f),null,.18f);
    var bulb=Mat("Bulb",C(1,.76f,.36f),null,.25f);bulb.EnableKeyword("_EMISSION");bulb.SetColor("_EmissionColor",C(1,.48f,.12f)*3.5f);
-   var bg=new Material(Shader.Find("Dollwright/Workbench2/SoftBackdrop"));bg.SetTexture("_BaseMap",Texture("Workshop_Background",false));bg.SetColor("_BaseColor",C(.78f,.82f,.78f));bg.SetFloat("_Blur",2.2f);
+   var bg=new Material(Shader.Find("Dollwright/Workbench2/SoftBackdrop"));bg.SetTexture("_BaseMap",Texture("Workshop_Background",false));bg.SetColor("_BaseColor",C(.90f,.94f,.90f));bg.SetFloat("_Blur",1.4f);
    PutAsset(bg,Root+"/Materials/WB2_Background.mat");mats["Background"]=AssetDatabase.LoadAssetAtPath<Material>(Root+"/Materials/WB2_Background.mat");
   }
   static void PutAsset(UnityEngine.Object obj,string path)
@@ -180,25 +257,6 @@ namespace Dollwright.Workbench2.Editor
   {
    var go=GameObject.CreatePrimitive(type);go.name=name;if(parent)go.transform.SetParent(parent,false);go.transform.position=p;go.transform.localScale=scale;
    UnityEngine.Object.DestroyImmediate(go.GetComponent<Collider>());go.GetComponent<Renderer>().sharedMaterial=mat;return go;
-  }
-  static void AddTrimDetails(Transform parent)
-  {
-   // Sparse inlay rings echo the reference's ivory turntable and antique brass fittings.
-   for(int row=0;row<2;row++)
-   {
-    int sides=48;float radius=row==0?.554f:.533f;float width=.004f;
-    var v=new List<Vector3>();var uv=new List<Vector2>();var triangles=new List<int>();
-    for(int i=0;i<=sides;i++)
-    {
-     float a=i*Mathf.PI*2/sides;
-     foreach(float r in new[]{radius-width,radius}){v.Add(new Vector3(-.1f+r*Mathf.Cos(a),.957f,-.22f+r*.9565f*Mathf.Sin(a)));uv.Add(new Vector2(i/(float)sides,r));}
-     if(i<sides){int q=i*2;triangles.AddRange(new[]{q,q+1,q+2,q+1,q+3,q+2});}
-    }
-    var mesh=new Mesh{name="Platform_Inlay_Ring_"+row};mesh.SetVertices(v);mesh.SetUVs(0,uv);mesh.SetTriangles(triangles,0);mesh.RecalculateNormals();
-    string path=Root+"/Models/Platform_Inlay_"+row+".asset";PutAsset(mesh,path);
-    var go=new GameObject("Platform_Brass_Inlay_"+row);go.transform.SetParent(parent,true);go.transform.position=Vector3.zero;go.transform.rotation=Quaternion.identity;
-    go.AddComponent<MeshFilter>().sharedMesh=AssetDatabase.LoadAssetAtPath<Mesh>(path);go.AddComponent<MeshRenderer>().sharedMaterial=mats["Brass"];
-   }
   }
   static void SetupCamera()
   {
@@ -229,25 +287,19 @@ namespace Dollwright.Workbench2.Editor
   {
    var root=new GameObject("Lighting_Warm_Window_And_Lamp");
    RenderSettings.ambientMode=AmbientMode.Trilight;
-   RenderSettings.ambientSkyColor=C(.29f,.32f,.24f);RenderSettings.ambientEquatorColor=C(.18f,.21f,.14f);RenderSettings.ambientGroundColor=C(.10f,.075f,.045f);
+   RenderSettings.ambientSkyColor=C(.50f,.54f,.45f);RenderSettings.ambientEquatorColor=C(.36f,.39f,.30f);RenderSettings.ambientGroundColor=C(.23f,.19f,.13f);
    RenderSettings.ambientIntensity=1;RenderSettings.reflectionIntensity=.85f;RenderSettings.fog=false;
    var sky=new Material(Shader.Find("Skybox/Procedural"));sky.SetColor("_SkyTint",C(.46f,.49f,.35f));sky.SetColor("_GroundColor",C(.14f,.10f,.06f));sky.SetFloat("_Exposure",.8f);
    PutAsset(sky,Root+"/Lighting/Warm_Reflection_Sky.mat");RenderSettings.skybox=AssetDatabase.LoadAssetAtPath<Material>(Root+"/Lighting/Warm_Reflection_Sky.mat");
-   var sun=MakeLight("Sun_Left_Window",LightType.Directional,new Vector3(-3.4f,5,-1.8f),new Vector3(.3f,.8f,0),C(1,.83f,.59f),2.1f,root.transform);
+   var sun=MakeLight("Sun_Left_Window",LightType.Directional,new Vector3(-3.4f,5,-1.8f),new Vector3(.3f,.8f,0),C(1,.88f,.69f),1.8f,root.transform);
    RenderSettings.sun=sun;
-   var fill=MakeLight("Soft_Green_Fill",LightType.Directional,new Vector3(2,2.5f,-4),new Vector3(0,1,0),C(.64f,.72f,.63f),.38f,root.transform);fill.shadows=LightShadows.None;
+   sun.cookie=Texture("Window_Leaf_Light",false);sun.cookieSize=3.8f;
+   var sunData=sun.gameObject.AddComponent<UniversalAdditionalLightData>();sunData.lightCookieSize=new Vector2(3.8f,3.8f);sunData.lightCookieOffset=new Vector2(.4f,-.3f);
+   var fill=MakeLight("Soft_Green_Fill",LightType.Directional,new Vector3(2,2.5f,-4),new Vector3(0,1,0),C(.69f,.76f,.68f),.80f,root.transform);fill.shadows=LightShadows.None;
    var bulb=UnityEngine.Object.FindObjectsOfType<Transform>().First(t=>t.name=="Lamp_Bulb");
-   var lamp=MakeLight("Lamp_Warm_Pool",LightType.Spot,bulb.position+new Vector3(0,-.09f,0),new Vector3(-.45f,.86f,-.15f),C(1,.72f,.40f),2.4f,root.transform);lamp.spotAngle=92;lamp.innerSpotAngle=52;lamp.range=2.1f;
+   var lamp=MakeLight("Lamp_Warm_Pool",LightType.Spot,bulb.position+new Vector3(0,-.09f,0),new Vector3(-.45f,.86f,-.15f),C(1,.81f,.58f),1.2f,root.transform);lamp.spotAngle=92;lamp.innerSpotAngle=52;lamp.range=2.1f;
    var bounce=MakeLight("Desk_Warm_Bounce",LightType.Point,new Vector3(-.6f,1.02f,-.35f),Vector3.zero,C(1,.66f,.32f),.22f,root.transform);bounce.range=1.6f;bounce.shadows=LightShadows.None;
-   // Invisible light blockers create the reference's diagonal window shadow bands.
-   var gobo=new GameObject("Window_Shadow_Casters_Only");gobo.transform.SetParent(root.transform);
-   var basis=Quaternion.LookRotation(-sun.transform.forward,Vector3.up);Vector3 centre=new Vector3(-.2f,.9f,0)-sun.transform.forward*1.9f;
-   for(int i=0;i<3;i++)
-   {
-    var go=Primitive("Window_Mullion_Shadow_"+i,PrimitiveType.Cube,centre+basis*new Vector3((i-1)*.78f,0,0),new Vector3(.055f,3.5f,.025f),mats["DarkWood"],gobo.transform);
-    go.transform.rotation=basis;go.GetComponent<Renderer>().shadowCastingMode=ShadowCastingMode.ShadowsOnly;
-   }
-   var cross=Primitive("Window_Crossbar_Shadow",PrimitiveType.Cube,centre+basis*new Vector3(0,.35f,0),new Vector3(3.5f,.055f,.025f),mats["DarkWood"],gobo.transform);cross.transform.rotation=basis;cross.GetComponent<Renderer>().shadowCastingMode=ShadowCastingMode.ShadowsOnly;
+   // Soft projected leaf/window pattern requires no extra environment geometry.
    var probeGo=new GameObject("Reflection_Probe_Workbench");probeGo.transform.SetParent(root.transform);probeGo.transform.position=new Vector3(-.2f,1.35f,-.35f);
    var probe=probeGo.AddComponent<ReflectionProbe>();probe.size=new Vector3(5,4,5);probe.resolution=128;probe.boxProjection=false;probe.hdr=true;probe.mode=ReflectionProbeMode.Baked;probe.clearFlags=ReflectionProbeClearFlags.Skybox;
    DynamicGI.UpdateEnvironment();
@@ -256,8 +308,8 @@ namespace Dollwright.Workbench2.Editor
   {
    var profile=ScriptableObject.CreateInstance<VolumeProfile>();profile.name="Workbench_2_0_WarmGrade";
    var tone=profile.Add<Tonemapping>(true);tone.mode.Override(TonemappingMode.ACES);
-   var color=profile.Add<ColorAdjustments>(true);color.postExposure.Override(.25f);color.contrast.Override(12);color.saturation.Override(-8);
-   var balance=profile.Add<WhiteBalance>(true);balance.temperature.Override(5);balance.tint.Override(-3);
+   var color=profile.Add<ColorAdjustments>(true);color.postExposure.Override(.20f);color.contrast.Override(3);color.saturation.Override(-12);
+   var balance=profile.Add<WhiteBalance>(true);balance.temperature.Override(2);balance.tint.Override(-3);
    var bloom=profile.Add<Bloom>(true);bloom.threshold.Override(1.1f);bloom.intensity.Override(.15f);bloom.scatter.Override(.45f);
    var vignette=profile.Add<Vignette>(true);vignette.intensity.Override(.18f);vignette.smoothness.Override(.55f);
    // Background softness is confined to its plane, so hands/tools stay legible.
@@ -279,6 +331,7 @@ namespace Dollwright.Workbench2.Editor
    if(EditorBuildSettings.scenes.Any(s=>s.path==ScenePath))throw new InvalidOperationException("Art test unexpectedly included in game build scenes.");
    var root=GameObject.Find("Workbench_2_0_Art_Model");var meshes=root.GetComponentsInChildren<MeshFilter>(true);
    var all=root.GetComponentsInChildren<Transform>(true);
+   foreach(var f in meshes)if(f.sharedMesh.uv.Length!=f.sharedMesh.vertexCount)throw new InvalidOperationException("Missing UV coordinates: "+f.name);
    var footprint=new Bounds(new Vector3(0,1,0),Vector3.zero);foreach(var r in root.GetComponentsInChildren<Renderer>())footprint.Encapsulate(r.bounds);
    var summary=new ValidationReport{scene=scene.path,meshObjects=meshes.Length,triangles=meshes.Sum(f=>f.sharedMesh.triangles.Length/3),materials=renderers.SelectMany(r=>r.sharedMaterials).Distinct().Count(),gameplayScripts=scripts.Length,uiCanvases=0,backgroundPlanes=1,inBuildSettings=false,woodModuleHidden=!all.First(t=>t.name=="Wood_Station").gameObject.activeSelf,potteryModuleHidden=!all.First(t=>t.name=="Pottery_Station").gameObject.activeSelf,bounds=footprint.ToString()};
    Directory.CreateDirectory(Reports);File.WriteAllText(Reports+"/validation.json",JsonUtility.ToJson(summary,true));File.WriteAllText(Preview+"/unity-validation.json",JsonUtility.ToJson(summary,true));
@@ -293,7 +346,17 @@ namespace Dollwright.Workbench2.Editor
   static double next;
   [Serializable]class Request{public string id,command;}
   [Serializable]class State{public string id,result,error,scene;public bool compiling;}
-  static Workbench2ArtBridge(){EditorApplication.update+=Poll;}
+  static Workbench2ArtBridge()
+  {
+   // Commands from a closed editor session must not rebuild a scene on next launch.
+   if(!SessionState.GetBool("Workbench2Art.BridgeInitialized",false))
+   {
+    string file=Workbench2ArtBuilder.Reports+"/request.json";
+    if(File.Exists(file)){try{var r=JsonUtility.FromJson<Request>(File.ReadAllText(file));if(r!=null)SessionState.SetString("Workbench2Art.Request",r.id);}catch(IOException){}}
+    SessionState.SetBool("Workbench2Art.BridgeInitialized",true);
+   }
+   EditorApplication.update+=Poll;
+  }
   static void Poll()
   {
    if(Application.isBatchMode||EditorApplication.isCompiling||EditorApplication.timeSinceStartup<next)return;
@@ -310,6 +373,7 @@ namespace Dollwright.Workbench2.Editor
      case "capture":Workbench2ArtBuilder.Capture();break;
      case "open":Workbench2ArtBuilder.Open();break;
      case "validate":Workbench2ArtBuilder.Validate();break;
+     case "focus":Workbench2ArtBuilder.FocusAndCapture();break;
      default:throw new InvalidOperationException("Unknown art-test command.");
     }
     state.result="complete";

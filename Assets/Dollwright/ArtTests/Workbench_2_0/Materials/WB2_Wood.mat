@@ -32,8 +32,8 @@ Material:
     - _Cull: 2
     - _Metallic: 0
     - _PaintCoverage: 0
-    - _Smoothness: 0.28
+    - _Smoothness: 0.23
     m_Colors:
-    - _BaseColor: {r: 0.61, g: 0.47, b: 0.34, a: 1}
-    - _PaintColor: {r: 0.61, g: 0.47, b: 0.34, a: 1}
+    - _BaseColor: {r: 0.72, g: 0.67, b: 0.58, a: 1}
+    - _PaintColor: {r: 0.72, g: 0.67, b: 0.58, a: 1}
   m_BuildTextureStacks: []

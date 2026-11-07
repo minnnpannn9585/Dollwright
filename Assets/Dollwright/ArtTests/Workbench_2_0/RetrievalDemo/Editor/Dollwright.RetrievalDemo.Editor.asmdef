@@ -1,0 +1,5 @@
+{
+  "name": "Dollwright.RetrievalDemo.Editor",
+  "references": ["Dollwright.RetrievalDemo", "Unity.ugui", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"],
+  "includePlatforms": ["Editor"]
+}

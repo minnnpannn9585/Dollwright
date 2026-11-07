@@ -1,0 +1,5 @@
+{
+  "name": "Dollwright.RetrievalDemo",
+  "rootNamespace": "Dollwright.RetrievalDemo",
+  "references": ["Unity.ugui", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"]
+}
