@@ -31,6 +31,49 @@ namespace Dollwright.Graybox.Tests
             ExecuteEvents.Execute(button.gameObject, new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left }, ExecuteEvents.pointerClickHandler);
         }
         [UnityTest]
+        public IEnumerator AssembledDollsMoveInWindmillDuringNormalPhysics()
+        {
+            foreach (bool wheel in new[] { true, false })
+            {
+                yield return Load("Assets/Workbenches/Workbench_02_DollAssembly.unity");
+                var bench = Object.FindObjectOfType<RetrievalDemo.RetrievalDemoController>();
+                bench.OpenAssembly();
+                var assembly = bench.Free;
+                assembly.Place(0, new Vector3(0,.562f,0), Quaternion.identity);
+                assembly.Place(2, new Vector3(.437f,.15f,0), Quaternion.identity);
+                if (wheel) assembly.Place(5, new Vector3(0,-.602f,0), Quaternion.identity);
+                else
+                {
+                    assembly.Place(3, new Vector3(-.17f,-.472f,0), Quaternion.identity);
+                    assembly.Place(4, new Vector3(.17f,-.472f,0), Quaternion.identity);
+                }
+                Assert.IsTrue(assembly.Complete);
+                yield return null;
+                GameObject.Find("试演 · 纸风车").GetComponent<Button>().onClick.Invoke();
+                yield return new WaitForSeconds(.2f);
+                var trial = Object.FindObjectOfType<RetrievalDemo.WindmillCommission>();
+                Assert.IsNotNull(trial);
+                var body = trial.doll.GetComponent<Rigidbody2D>();
+                float start = body.position.x;
+                float floor = body.position.y;
+                float peak = floor;
+                var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+                var direction = trial.GetType().GetField("direction", flags);
+                var jump = trial.GetType().GetField("jump", flags);
+                float end = Time.time + .55f;
+                while (Time.time < end)
+                {
+                    direction.SetValue(trial, 1f);
+                    jump.SetValue(trial, true);
+                    yield return null;
+                    peak = Mathf.Max(peak, body.position.y);
+                }
+                Assert.Greater(body.position.x - start, .6f, "Normal Play Mode must advance horizontal motion");
+                Assert.Greater(peak - floor, .35f, "Normal Play Mode must advance jumps");
+            }
+        }
+
+        [UnityTest]
         public IEnumerator BedSelectionDreamAndWakeCompleteRoundTrip()
         {
             yield return Load(DreamTravel.WorkbenchScene);

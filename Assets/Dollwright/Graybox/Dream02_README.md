@@ -2,8 +2,8 @@
 更新：2026-10-20
 
 ## 两个可玩场景
-1. Scenes/Dream02_MagicBox.unity：保留原先的方箱入口。出生在箱顶，按 E 落入，再穿右侧屏障进入主关卡。
-2. Scenes/Dream02_MagicStage.unity：魔术舞台 → 电锯消失术 → 双箱替身 → H2 材料 → 醒来出口。
+1. Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream02_MagicBox.unity：保留原先的方箱入口。出生在箱顶，按 E 落入，再穿右侧屏障进入主关卡。
+2. Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream02_MagicStage.unity：魔术舞台 → 电锯消失术 → 双箱替身 → H2 材料 → 醒来出口。
 
 主关卡全程共用一个玩家、GrayboxRun、镜头和迷雾。区域接缝可以直接走过；材料、箱子和机关状态在同一场景持续保留。
 Build Settings 和 Scenes 目录中，Dream02 只保留以上两个场景。

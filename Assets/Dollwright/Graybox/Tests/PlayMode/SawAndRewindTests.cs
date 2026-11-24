@@ -8,7 +8,7 @@ namespace Dollwright.Graybox.Tests
 {
     public sealed class SawAndRewindTests
     {
-        const string Root="Assets/Dollwright/Graybox/Scenes/";
+        const string Root="Assets/Workbenches/Workbench_01_DreamExploration/Levels/";
         GrayboxPlayer2D player; GrayboxRun run;
         Vector2 regionOrigin;
         Dream02ContinuousLayout layout;
@@ -21,7 +21,7 @@ namespace Dollwright.Graybox.Tests
             DreamTravel.ClearJourney();
             bool saw=section=="Saw",doubles=section=="Double";
             string scene=saw||doubles?"Dream02_MagicStage":section;
-            yield return EditorSceneManager.LoadSceneAsyncInPlayMode(Root+scene+".unity",new LoadSceneParameters(LoadSceneMode.Single));
+            yield return EditorSceneManager.LoadSceneAsyncInPlayMode((scene=="MovementTest"?"Assets/Dollwright/Graybox/Scenes/":Root)+scene+".unity",new LoadSceneParameters(LoadSceneMode.Single));
             Application.runInBackground=true;RefreshPlayer();yield return new WaitForSeconds(.25f);
             layout=Object.FindObjectOfType<Dream02ContinuousLayout>();
             doubleRegion=doubles;regionOrigin=doubles?layout.DoubleOrigin:saw?layout.SawOrigin:Vector2.zero;

@@ -1,10 +1,10 @@
 # Dollwright · 工作台与快乐梦境原型
 
-Unity 2022.3.62f3c1，2D URP。第一关文件为 Scenes/Dream01_Graybox.unity。本轮在用户编辑后的第一关上定点修复，并连接 Workbench 场景。没有重新生成关卡。
+Unity 2022.3.62f3c1，2D URP。第一关文件为 Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream01_Graybox.unity。本轮在用户编辑后的第一关上定点修复，并连接 Workbench 场景。没有重新生成关卡。
 
 ## 打开和操作
 
-1. 打开 Scenes/Workbench.unity，等待 Unity 编译完成。也可通过 **Dollwright → Graybox → Open Dream 01** 单独测试第一关。
+1. 打开 Assets/Workbenches/Workbench_01_DreamExploration.unity，等待 Unity 编译完成。也可通过 **Dollwright → Graybox → Open Dream 01** 单独测试第一关。
 2. 点击顶部 ▶ Play。工作台右下角点击小床“入梦”，镜头靠近展示架后，点击架上的白色人偶进入梦境。按 Esc 或点击“返回工作台”可取消选择。
 3. **A/D 或方向键**行走；贴着箱子行走即可推箱。**空格**跳跃，长按跳得更高。
 4. 泡泡摊右侧出口按 **E** 醒来，约 0.6 秒后返回工作台；**R** 清空本次梦境记录并重开。

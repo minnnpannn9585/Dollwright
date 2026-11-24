@@ -67,8 +67,8 @@ namespace Dollwright.Graybox.Editor
             var magician=AssetDatabase.LoadAssetAtPath<DollDefinition>(Root+"Data/Doll02_Magician.asset");
             magician.recipe=new DollRecipe(DollBody.Cotton,DollFace.HappyPaint,DollHead.Magician);EditorUtility.SetDirty(magician);
             EditorSceneManager.MarkSceneDirty(scene);EditorSceneManager.SaveScene(scene);
-            string[] paths={DreamTravel.DreamScene,Root+"Scenes/MovementTest.unity",Root+"Scenes/Dream02_MagicBox.unity",
-                Root+"Scenes/Dream02_MagicStage.unity"};
+            string[] paths={DreamTravel.DreamScene,Root+"Scenes/MovementTest.unity","Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream02_MagicBox.unity",
+                "Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream02_MagicStage.unity"};
             foreach(string path in paths)
             {
                 var dream=EditorSceneManager.OpenScene(path);

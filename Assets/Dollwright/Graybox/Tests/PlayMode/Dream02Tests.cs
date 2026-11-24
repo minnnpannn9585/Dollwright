@@ -8,8 +8,8 @@ namespace Dollwright.Graybox.Tests
 {
     public sealed class Dream02Tests
     {
-        const string Entry="Assets/Dollwright/Graybox/Scenes/Dream02_MagicBox.unity";
-        const string Stage="Assets/Dollwright/Graybox/Scenes/Dream02_MagicStage.unity";
+        const string Entry="Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream02_MagicBox.unity";
+        const string Stage="Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream02_MagicStage.unity";
         GrayboxPlayer2D player;
         DreamPhaseAbility phase;
         IEnumerator Load(string path)

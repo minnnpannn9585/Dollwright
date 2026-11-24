@@ -193,7 +193,7 @@ namespace Dollwright.Graybox.Tests
         [UnityTest]
         public IEnumerator DreamSegmentRewardsKeepTypesAndBankOnlyWhenWaking()
         {
-            const string root="Assets/Dollwright/Graybox/Scenes/";
+            const string root="Assets/Workbenches/Workbench_01_DreamExploration/Levels/";
             SupplyAll();
             var recipe=new DollRecipe(DollBody.Cotton,DollFace.HappyPaint,DollHead.Magician);
             Assert.IsTrue(stock.TryCraft(recipe,out var doll));

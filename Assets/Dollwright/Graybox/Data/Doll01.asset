@@ -21,4 +21,4 @@ MonoBehaviour:
   displayName: "\u5FEB\u4E50\u7684\u5E03\u5076"
   dreamName: "\u68A6\u5883 01 \xB7 \u5FEB\u4E50\u6E38\u4E50\u56ED"
   abilities: "\u884C\u8D70 \xB7 \u8DF3\u8DC3 \xB7 \u63A8\u7BB1"
-  dreamScenePath: Assets/Dollwright/Graybox/Scenes/Dream01_Graybox.unity
+  dreamScenePath: Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream01_Graybox.unity

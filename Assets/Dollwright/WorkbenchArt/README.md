@@ -1,6 +1,6 @@
 # 工作台手绘美术首版 · 2026-10-20
 
-已在原 Unity 项目的 `Assets/Dollwright/Graybox/Scenes/Workbench.unity` 应用。
+已在原 Unity 项目的 `Assets/Workbenches/Workbench_01_DreamExploration.unity` 应用。
 
 本次修改：
 

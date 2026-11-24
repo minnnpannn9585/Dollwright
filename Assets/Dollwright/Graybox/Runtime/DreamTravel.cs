@@ -8,8 +8,8 @@ namespace Dollwright.Graybox
     // Travel carries the selected crafted doll and unbanked rewards between dream segments.
     public static class DreamTravel
     {
-        public const string WorkbenchScene = "Assets/Dollwright/Graybox/Scenes/Workbench.unity";
-        public const string DreamScene = "Assets/Dollwright/Graybox/Scenes/Dream01_Graybox.unity";
+        public const string WorkbenchScene = "Assets/Workbenches/Workbench_01_DreamExploration.unity";
+        public const string DreamScene = "Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream01_Graybox.unity";
         public static string SelectedDollId { get; private set; }
         public static string SelectedDollInstanceId { get; private set; }
         public static DollRecipe SelectedRecipe { get; private set; }

@@ -1,6 +1,6 @@
 # 工作台人偶自定义灰盒
 
-场景：Assets/Dollwright/Graybox/Scenes/Workbench.unity
+场景：Assets/Workbenches/Workbench_01_DreamExploration.unity
 
 ## 操作
 1. 在 Unity 打开 Workbench，点击 Play，再点击中央圆形制作台。

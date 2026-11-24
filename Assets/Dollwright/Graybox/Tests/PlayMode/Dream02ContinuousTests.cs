@@ -10,7 +10,7 @@ namespace Dollwright.Graybox.Tests
 {
     public sealed class Dream02ContinuousTests
     {
-        const string Stage="Assets/Dollwright/Graybox/Scenes/Dream02_MagicStage.unity";
+        const string Stage="Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream02_MagicStage.unity";
         IEnumerator Load()
         {
             DreamTravel.ClearJourney();

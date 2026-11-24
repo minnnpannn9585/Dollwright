@@ -10,8 +10,8 @@ namespace Dollwright.Graybox.Editor
 {
     public static partial class Dream02Builder
     {
-        public const string Entry = GrayboxBuilder.Root + "/Scenes/Dream02_MagicBox.unity";
-        public const string Stage = GrayboxBuilder.Root + "/Scenes/Dream02_MagicStage.unity";
+        public const string Entry = "Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream02_MagicBox.unity";
+        public const string Stage = "Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream02_MagicStage.unity";
         static Sprite square,circle;
         static Material material;
         static PhysicsMaterial2D friction;

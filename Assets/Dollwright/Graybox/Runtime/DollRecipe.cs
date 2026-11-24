@@ -26,7 +26,7 @@ namespace Dollwright.Graybox
             + (head == DollHead.Magician ? "魔术师" : head == DollHead.Bubble ? "泡泡" : "")
             + (body == DollBody.Cotton ? "布偶" : body == DollBody.Wood ? "木偶" : "瓷偶");
         public string DreamPath => head == DollHead.Magician
-            ? "Assets/Dollwright/Graybox/Scenes/Dream02_MagicBox.unity"
+            ? "Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream02_MagicBox.unity"
             : head == DollHead.None ? DreamTravel.DreamScene : "";
         public string Ability => head == DollHead.Magician ? "穿越屏障" : head == DollHead.Bubble ? "漂浮" : "";
         public string[] Ingredients => HeadId == null

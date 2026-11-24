@@ -13,7 +13,7 @@ namespace Dollwright.Graybox.Tests
     public sealed class GrayboxPlayModeTests
     {
         const string Movement = "Assets/Dollwright/Graybox/Scenes/MovementTest.unity";
-        const string Dream = "Assets/Dollwright/Graybox/Scenes/Dream01_Graybox.unity";
+        const string Dream = "Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream01_Graybox.unity";
         GrayboxPlayer2D player;
         GrayboxRun run;
 

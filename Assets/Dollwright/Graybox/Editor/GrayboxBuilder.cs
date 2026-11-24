@@ -11,7 +11,7 @@ namespace Dollwright.Graybox.Editor
     {
         public const string Root = "Assets/Dollwright/Graybox";
         public const string MovementScene = Root + "/Scenes/MovementTest.unity";
-        public const string DreamScene = Root + "/Scenes/Dream01_Graybox.unity";
+        public const string DreamScene = "Assets/Workbenches/Workbench_01_DreamExploration/Levels/Dream01_Graybox.unity";
         static Sprite square, circle, triangle;
         static Material spriteMaterial;
         static PhysicsMaterial2D noFriction, crateFriction;
